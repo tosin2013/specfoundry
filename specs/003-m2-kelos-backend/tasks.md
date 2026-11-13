@@ -169,7 +169,7 @@ GitHub-built images (SC-002).
 - [X] T029 [P] Update `docs/harnesses.md`: the worker image now comes from GHCR, built in GitHub from upstream OpenCode; the arbitrary-UID and proxy notes; the Kelos-compatible entrypoint. Name no private providers.
 - [X] T030 [P] Update `pilot/README.md`: `pilot up` pulls by digest (`--local-build` for development); where the images come from; the CI badge or workflow link.
 - [X] T031 Update `specs/003-m2-kelos-backend/spec.md` with an **Evidence** section linking `evidence/ci.md`, `evidence/enterprise.md`, the validation run summary and `kelos-review.md`, and update the plan's Known risks with the outcomes.
-- [ ] T032 Run `/speckit-roadmap-debrief` for 003. Then, with owner approval, `/speckit-roadmap-write`: record 003's status, link its spec dir, and add any approved gap items from the review as new entries. Don't edit the roadmap directly.
+- [X] T032 Run `/speckit-roadmap-debrief` for 003. Then, with owner approval, `/speckit-roadmap-write`: record 003's status, link its spec dir, and add any approved gap items from the review as new entries. Don't edit the roadmap directly.
 
 ---
 
