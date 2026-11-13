@@ -16,6 +16,7 @@ UP_OK = BUILD / "up.ok"
 IMAGES_JSON = BUILD / "images.json"
 IMAGE_SOURCE = BUILD / "image-source.txt"
 FIXTURE_BASE = BUILD / "fixture-base.txt"
+MODEL_HOST = BUILD / "model-host.txt"  # git-ignored; the provider host never goes into evidence
 
 CLUSTER = "specfoundry-m1"
 CONTEXT = f"kind-{CLUSTER}"

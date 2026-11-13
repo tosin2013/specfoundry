@@ -104,3 +104,15 @@ class TestLoad(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPublicRedactsHost(unittest.TestCase):
+    def test_model_host_hashed_in_public_values(self):
+        import hashlib
+        cfg = config.Config(values={"PILOT_MODEL_EGRESS_HOSTS": "api.example.com,b.example.org", "PILOT_MODEL": "p/m"},
+                            config_dir=Path("/x"), model_dir=Path("/x/opencode"), publisher_env=Path("/x/p.env"))
+        pub = cfg.public()
+        self.assertNotIn("example", pub["PILOT_MODEL_EGRESS_HOSTS"])
+        self.assertEqual(pub["PILOT_MODEL_EGRESS_HOSTS"].split(",")[0],
+                         "sha256:" + hashlib.sha256(b"api.example.com").hexdigest()[:16])
+        self.assertEqual(pub["PILOT_MODEL"], "p/m")

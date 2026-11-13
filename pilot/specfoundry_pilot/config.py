@@ -68,8 +68,14 @@ class Config:
         return model_files(self.model_dir)
 
     def public(self) -> dict:
-        """Non-secret values for config.json."""
-        return dict(self.values)
+        """Values safe for the committed evidence (config.json). The model provider's host
+        name identifies the operator's provider, so only its hash is recorded."""
+        import hashlib
+        v = dict(self.values)
+        if v.get("PILOT_MODEL_EGRESS_HOSTS"):
+            v["PILOT_MODEL_EGRESS_HOSTS"] = ",".join(
+                "sha256:" + hashlib.sha256(h.encode()).hexdigest()[:16] for h in self.model_hosts)
+        return v
 
 
 def config_dir() -> Path:
