@@ -115,6 +115,11 @@ agent. A factual, cited comparison against our security bar is in
 
 ## Contributing
 
-The project is early, so issues and discussion are welcome. Changes follow the Spec Kit flow
-(`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`) and must pass
-the constitution check in each plan.
+The project is early, so issues and discussion are welcome. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the Spec Kit workflow, local checks and ground rules.
+Report security problems privately through GitHub's vulnerability reporting.
+
+## License
+
+[Apache License 2.0](LICENSE). See also [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[Code of Conduct](CODE_OF_CONDUCT.md).
