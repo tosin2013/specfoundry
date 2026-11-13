@@ -126,6 +126,21 @@ pilot/tests/test_pins.py             # NEW
 - Arbitrary-UID support may surface file-permission issues in OpenCode's own state
   directories; R8's tests catch them.
 
+### Outcomes (2026-11-13)
+
+- **GHCR visibility:** the packages were public without any manual change (public repo). But
+  a new repo blocks Actions from opening PRs by default; the owner enabled *Allow GitHub
+  Actions to create and approve pull requests*.
+- **Upstream OpenCode:** the binary is byte-identical to 002's host binary, so the grading
+  and induction behaviour was unchanged (confirmed by the validation run).
+- **Arbitrary UID:** no permission issues. All three images, and a real worker job, ran as
+  UID 1000123.
+- **New finding:** after the repo went public, the publisher-token scope check gave a false
+  positive (GitHub's `permissions` field shows the account's rights on a public repo). It
+  was replaced with a side-effect-free write probe.
+- **Privacy:** the model provider's host is now recorded only as a hash. History was
+  rewritten and the repo recreated before going public.
+
 ## Complexity Tracking
 
 None.

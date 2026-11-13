@@ -1,0 +1,11 @@
+{"description": "B refused (and never attempted) until A verified (SC-001)", "detail": "refusals=3 attempts_before=0 allows_before=0", "id": "AU01", "requirement": "audit", "result": "pass"}
+{"description": "order A/1 fail -> A/2+ pass -> B pass (SC-002)", "detail": "[('A', 1, 'grade_fail'), ('A', 2, 'grade_pass'), ('B', 1, 'grade_pass')]", "id": "AU02", "requirement": "audit", "result": "pass"}
+{"description": "exactly 2 draft PRs, both by the publisher identity (SC-003)", "detail": "[{\"task\": \"A\", \"number\": 3, \"draft\": true, \"author\": \"tosin2013\", \"publisher_identity\": \"tosin2013\"}, {\"task\": \"B\", \"number\": 4, \"draft\": true, \"author\": \"tosin2013\", \"publisher_identity\": \"tosin2013\"}]", "id": "AU03", "requirement": "audit", "result": "pass"}
+{"description": "no worker/grader held an SCM credential (P04, P09) (SC-004)", "detail": "rows=5", "id": "AU04", "requirement": "audit", "result": "pass"}
+{"description": "gate fail-closed matrix passed (SC-005)", "detail": "rows=4", "id": "AU05", "requirement": "audit", "result": "pass"}
+{"description": "every attempt within its spend cap (SC-008)", "detail": "over=[]", "id": "AU06", "requirement": "audit", "result": "pass"}
+{"description": "teardown verified (SC-006)", "detail": "rows=3", "id": "AU07", "requirement": "audit", "result": "pass"}
+{"description": "no secrets in the evidence record", "detail": "hits=[]", "id": "AU08", "requirement": "audit", "result": "pass"}
+{"description": "every retry confirmed by the operator (FR-017)", "detail": "unconfirmed=[]", "id": "AU09", "requirement": "audit", "result": "pass"}
+{"description": "mode confirmed before any worker staged (FR-023)", "detail": "mode_seq=3 first_attempt=4", "id": "AU10", "requirement": "audit", "result": "pass"}
+{"description": "induction applied to A/1 only, withholding exactly the acceptance section", "detail": "[]", "id": "AU11", "requirement": "audit", "result": "pass"}

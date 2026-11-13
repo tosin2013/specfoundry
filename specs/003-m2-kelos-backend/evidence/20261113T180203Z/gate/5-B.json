@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-13T18:11:55Z",
+  "decision": "allow",
+  "input": {
+    "fixture_commit": "aa38d3fc0b254e1a3bd805773708369bb1e847b1",
+    "fixture_repo": "tosin2013/craz3-pilot-fixture",
+    "spec_status_exit": 0,
+    "spec_status_json_sha256": "9cbd5743edc170111727eb154bd62db9a88c58a2473293272375863623355f8d",
+    "spec_version": "spec 0.2.0"
+  },
+  "item_id": "002",
+  "reasons": [
+    "OK"
+  ],
+  "seq": 5,
+  "task": "B",
+  "version": 1
+}

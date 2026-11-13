@@ -1,0 +1,7 @@
+{
+  "name": "withheld-acceptance-section",
+  "removed_bytes": 453,
+  "removed_heading": "## Acceptance details",
+  "removed_sha256": "2b33fa9b61bfb4cc92cc498b44b147475c30649384e6fc964e9180da93b00289",
+  "workspace_spec_trimmed": "specs/001-slugify/spec.md"
+}

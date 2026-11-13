@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-13 (rescoped the same day: roadmap 1.4.0, constitution 1.1.0)
 
-**Status**: Draft
+**Status**: Implemented. Validation run 20261113T180203Z succeeded on the GitHub-built images (audit 11/11); not yet recorded `verified` in the roadmap
 
 **Roadmap**: `.specify/memory/roadmap.md` entry 003 (depends on 002, verified 2026-11-13)
 
@@ -238,3 +238,34 @@ noted, so it doesn't get lost.
 - OpenShift itself, Quay publishing and UBI variants are 005. Operator observability (C-10)
   is planned separately (roadmap Q6).
 - The review document lives in this spec folder as `kelos-review.md`.
+
+## Evidence
+
+- **[Validation run 20261113T180203Z](evidence/20261113T180203Z/summary.md)** (2026-11-13), plain
+  Jobs on kind + Calico, **every image pulled by digest from public GHCR**
+  (`image_source: pinned`, no local registry):
+  - **Order:** A/1 (induced) failed only on G5; B refused at every gate; retry confirmed; A/2
+    passed; draft PR #3 merged by the owner; reconcile approved; B allowed and passed; draft
+    PR #4.
+  - **Checks:** live checks 32/32, audit 11/11, teardown 3/3.
+  - **Tokens:** 239k, 477k and 225k against a 2M cap per attempt.
+  - **Timing:** 491 s excluding the merge wait.
+  - **Provider host:** recorded only as a hash (`sha256:f7255209538f063d`).
+  - **Refused egress** (`proxy-denials.log`): `bootstrap.pypa.io` (the agent trying to
+    install pip tooling) and `github.com` (the P06 probe, plus possibly the agent). No
+    OpenCode phone-home.
+  - **Negative checks before the run:** a wrong `CALICO_SHA256` gave exit 2 before Calico
+    was applied; a tag-only `WORKER_IMAGE` gave exit 2 before any pilot namespace was
+    created.
+- **[CI evidence](evidence/ci.md):**
+  - the PR build and smoke test passed without pushing;
+  - the `main` run published three public images with provenance and SBOM;
+  - the digest PR (#2), opened by `github-actions`, changed only `pilot/images.lock`;
+  - merging it started **no** new build (F1).
+- **[Enterprise evidence](evidence/enterprise.md):**
+  - arbitrary UID 3/3 for local and published images;
+  - a real worker job as UID 1000123 through proxy-only egress, graded G1–G5;
+  - mirror by digest gives identical digests.
+- **[Kelos competitive review](kelos-review.md):** SB-1–SB-8 for both products and 7
+  capability rows, cited at kelos-dev/kelos `83a7405`.
+
