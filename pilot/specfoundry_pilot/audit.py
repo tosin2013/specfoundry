@@ -156,6 +156,11 @@ def run(run_obj, final: bool = False, cfg=None) -> bool:
         except Exception:  # noqa: BLE001
             cfg = None
     key_files = [p for p in (cfg.model_files if cfg else []) if p.name != "opencode.json" and p.exists()]
+    if cfg and cfg.model_hosts:  # the provider host must not appear in evidence either
+        import tempfile
+        hf = Path(tempfile.mkdtemp()) / "model-hosts"
+        hf.write_text("\n".join(cfg.model_hosts) + "\n")
+        key_files.append(hf)
     env_files = [cfg.publisher_env] if cfg and cfg.publisher_env.exists() else []
     rows = audit_dir(run_obj.dir, key_files, env_files, final=final)
     out = run_obj.dir / "audit.jsonl"

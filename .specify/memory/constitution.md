@@ -1,13 +1,3 @@
-<!--
-SYNC IMPACT REPORT
-==================
-Version change: template → 1.0.0
-Modified principles: initial adoption (I–VII defined from docs/prd.md §2, §5, §6, §7)
-Added sections: Security & Isolation Constraints, Delivery Workflow & Quality Gates, Governance
-Removed sections: none
-Follow-up TODOs: none. Project name is a placeholder (PRD Q1); rename is a PATCH amendment.
--->
-
 # specfoundry Constitution
 
 ## Core Principles
@@ -46,18 +36,29 @@ its own.
 Rationale: autonomy is granted per decision, not assumed.
 
 ### VI. Build On, Don't Rebuild
-Reuse spec-status, Spec Kit, Kelos and existing skills rather than reimplementing them. Pod
-runners (Kelos, plain Jobs, OpenShift) and SCMs (GitHub, later Bitbucket) are pluggable
-backends behind adapters, not the product. Forking a dependency requires a recorded decision
-showing the needed behaviour cannot be achieved by wrapping it.
-Rationale: the value is the governed lifecycle, not another agent runner.
+Reuse spec-status, Spec Kit and existing skills rather than reimplementing them. Pod runners
+(plain Kubernetes Jobs now, OpenShift next) and SCMs (GitHub, later Bitbucket) are pluggable
+backends behind adapters, not the product. Agent runners such as Kelos are competitors and
+design references, not dependencies: their ideas MAY be borrowed (respecting their licences),
+but none is adopted unless it meets the project's security bar by configuration alone.
+Forking a dependency requires a recorded decision showing the needed behaviour cannot be
+achieved by wrapping it.
+Rationale: the value is the governed, least-privilege lifecycle, not another agent runner.
 
 ### VII. Repeatable and Portable
-One documented command sequence stands up the stack, and teardown is verified, on kind
-(about 8 GB free), on any approved Mac/Ubuntu/CI machine, and on OpenShift. Docs stay harness-
-and host-agnostic. Every external dependency (images, Kelos, tools) is pinned to an exact
-version or digest.
-Rationale: a result that only reproduces on one machine is not evidence.
+The project targets two environments, and every feature MUST work in both or state why not:
+- **Laptops:** kind with an enforcing CNI, about 8 GB free, on any approved Mac/Ubuntu/CI
+  machine.
+- **Enterprise:** OpenShift under the restricted SCC (arbitrary UID, no root, no sudo),
+  mirrored or air-gapped registries (e.g. Quay), HTTP proxies, a small trust base (no
+  cluster-wide third-party controllers in the worker path), and audit evidence a security
+  team can review.
+
+One documented command sequence stands up the stack, and teardown is verified. Docs stay
+harness- and host-agnostic. Every external dependency (images, tools, manifests) is pinned
+to an exact version or digest.
+Rationale: a result that only reproduces on one machine is not evidence, and an enterprise
+will not run what it cannot audit.
 
 ## Security & Isolation Constraints
 
@@ -67,7 +68,11 @@ Rationale: a result that only reproduces on one machine is not evidence.
   token automount disabled.
 - Images are thin, non-root, without sudo, and pinned by digest.
 - Every run respects a spend cap; loop caps map to deadlines and retry limits.
-- Third-party telemetry (e.g. Kelos) is disabled.
+- No third-party telemetry: any dependency's telemetry is disabled.
+- First-party telemetry is operator observability only: metrics, traces and events (e.g.
+  OpenTelemetry or Prometheus) sent only to a collector the operator runs. Nothing leaves the
+  operator's environment unless the operator configures it, and there is no phone-home usage
+  telemetry. Telemetry never carries secrets, prompts or source code.
 
 ## Delivery Workflow & Quality Gates
 
@@ -90,4 +95,4 @@ I–VII; any deviation needs a recorded justification in the plan's complexity t
 Security & Isolation Constraints are reviewed on every PR that touches worker, grader or
 publisher configuration.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 1.1.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13

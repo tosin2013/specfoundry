@@ -17,7 +17,7 @@ Spec Kit gives us a constitution, specs, plans, tasks and a roadmap. But taking 
 
 Take a Spec Kit roadmap end to end through the SDLC. A human approves the roadmap. The system carries each item through spec, plan, tasks, issues, isolated build, independent verification and a draft PR. The human merges, and the roadmap is marked verified only when the evidence supports it, which unblocks the next item. The roadmap is always the source of truth.
 
-Pod runners (Kelos, plain Jobs, OpenShift) are a pluggable build engine, not the product.
+Pod runners (plain Kubernetes Jobs now, OpenShift next) are a pluggable build engine, not the product.
 
 ## 3. Users
 
@@ -48,7 +48,7 @@ Pod runners (Kelos, plain Jobs, OpenShift) are a pluggable build engine, not the
 - F7: Loop caps map to deadlines and retry limits. Every run respects a spend cap.
 - F8: One draft PR per item or task. Never auto-merge.
 - F9: Every run writes an evidence record (inputs, image digests, gate result, grader report, PR link) that can be audited later.
-- F10: Pluggable runner. First backend is Kelos (pinned version, telemetry off). Plain Kubernetes Jobs is the fallback. OpenShift is a target.
+- F10: Pluggable runner. Plain Kubernetes Jobs first; OpenShift next. Agent runners such as Kelos are competitors and references, not dependencies.
 - F11: Pluggable SCM. GitHub first; Bitbucket later.
 
 ### Security and isolation (non-negotiable)
@@ -62,22 +62,23 @@ Pod runners (Kelos, plain Jobs, OpenShift) are a pluggable build engine, not the
 
 ### Non-functional
 
-- N1: Works on kind (single machine, about 8 GB free), on any approved machine (Mac, Ubuntu, CI), and on OpenShift.
+- N1: Works on kind (single machine, about 8 GB free), on any approved machine (Mac, Ubuntu, CI), and on OpenShift, including its restricted SCC (arbitrary UID), mirrored or air-gapped registries, and HTTP proxies.
 - N2: Harness- and host-agnostic docs with minimal governance.
 - N3: Repeatable: one command stands up the stack, and teardown is verified.
+- N4: Telemetry is operator observability only (metrics, traces and events to an operator-run collector); no phone-home.
 
 ## 6. Build on, don't rebuild
 
 - **spec-status** (owned): CLI gate plus v0.2.0 skills (review, explain, reconcile, unblock, verify-readiness).
 - **Spec Kit:** planning commands and `taskstoissues`.
-- **Kelos:** pod runner and harness images (we'll use our own thin images).
+- **Kelos (reference, not a dependency):** ideas such as its agent-image contract and spend budgets may inform our design, with attribution.
 - **OpenShift validation skills:** OpenShift, Helm, GitOps and validation skills for the evidence ladder.
 - **Process playbooks:** the human-facing process docs.
 
 ## 7. Out of scope (v1)
 
 - Auto-merge, or any merge without a human.
-- Building a general agent runner to compete with Kelos.
+- Building a general-purpose agent runner. specfoundry competes on governed, least-privilege delivery, not on runner features.
 - Hosted SaaS or a UI. CLI, CRDs and GitHub are the interface.
 - Publishing official agent images for every harness. We recommend images rather than maintain them, except for one reference thin OpenCode image.
 
@@ -91,7 +92,7 @@ Pod runners (Kelos, plain Jobs, OpenShift) are a pluggable build engine, not the
 
 - **M0 (done 2026-11-12):** stub isolation test on kind with Calico, 32 of 33 pass. Kelos read-only review done.
 - **M1 Pilot:** Codex's two-task pilot. Task A's grade fails, so task B stays blocked. A is retried and passes, then B runs. Exactly one draft PR per task. Runs on kind with plain Jobs.
-- **M2 Kelos backend:** same pilot through Kelos with the adapter (namespace, policies, thin image, gate stage, publisher, separate grader).
+- **M2 Hardened images and competitive review:** GitHub-built, digest-pinned images for laptops and enterprise; a factual Kelos comparison.
 - **M3 GitHub loop:** taskstoissues, label sync, PR `Closes #N`, reconcile after merge.
 - **M4 Planning in-cluster** (optional) **plus OpenShift** target.
 
@@ -105,7 +106,7 @@ Pod runners (Kelos, plain Jobs, OpenShift) are a pluggable build engine, not the
 ## 11. Open questions
 
 - Q1: Final project name and repo location (new repo vs. inside spec-status org).
-- Q2: Kelos as wrapped dependency vs. fork. Default is to wrap. Fork only if the token split, bundle-out or stage retry can't be worked around.
+- Q2 (resolved 2026-11-13): Kelos is a competitor; neither wrapped nor forked.
 - Q3: Which machine runs M1 and M2 (Ubuntu box, Mac, another lab machine)? One candidate machine can't run cert-manager because its ClusterIP and DNS don't work there.
 - Q4: Granularity: one worker run per roadmap item, or per task or issue?
 - Q5: Worker model provider and spend cap defaults (OpenCode Go plan, DeepSeek, others).

@@ -29,7 +29,9 @@ def apply_all(cfg, imgs: dict) -> None:
     k8s.apply(render_egress("pilot-egress-model", "worker", cfg.model_hosts, imgs["egress"]))
     k8s.apply(render_egress("pilot-egress-scm", "publisher", ["github.com", "api.github.com"], imgs["egress"]))
     for ns in ("pilot-egress-model", "pilot-egress-scm"):
-        k8s.kubectl("-n", ns, "rollout", "status", "deploy/proxy", "--timeout=180s", timeout=200)
+        r = k8s.kubectl("-n", ns, "rollout", "status", "deploy/proxy", "--timeout=180s", check=False, timeout=200)
+        if r.returncode != 0:
+            fail_on_pull(ns, f"egress proxy in {ns} did not become ready")
 
     print("== publisher namespace", flush=True)
     k8s.apply((paths.MANIFESTS / "publisher-ns.yaml.tmpl").read_text())
@@ -40,4 +42,13 @@ def apply_all(cfg, imgs: dict) -> None:
     k8s.apply(k8s.render(paths.MANIFESTS / "infra.yaml.tmpl", TOOLS_IMAGE=imgs["tools"]))
     for ns, pod in (("pilot-control", "control"), ("pilot-grader-standin", "target")):
         if not k8s.wait_pod_ready(ns, pod):
-            raise RuntimeError(f"{ns}/{pod} not ready")
+            fail_on_pull(ns, f"{ns}/{pod} not ready")
+
+
+def fail_on_pull(ns: str, what: str) -> None:
+    """Fail closed with the image reference when a pull failed (no fallback to local builds)."""
+    errs = k8s.pull_errors(ns)
+    if errs:
+        raise RuntimeError(f"{what}: image pull failed: {'; '.join(errs)}. "
+                           "Check pilot/images.lock and registry access; no local-build fallback is attempted.")
+    raise RuntimeError(what)

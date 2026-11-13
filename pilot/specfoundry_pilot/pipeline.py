@@ -177,7 +177,7 @@ def run(cfg) -> int:
     r = evidence.new_run()
     print(f"== run {r.id}")
     r.state["fixture_base"] = paths.FIXTURE_BASE.read_text().strip()
-    r.state["model_host"] = cfg.model_hosts[0]
+    paths.MODEL_HOST.write_text(cfg.model_hosts[0] + "\n")  # for the P06 probe; never in evidence
     evidence.write_config_json(r, cfg)
     evidence.write_versions(r, imgs)
     r.event("run", None, None, "run_started", cfg.repo)

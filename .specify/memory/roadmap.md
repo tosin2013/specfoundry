@@ -1,6 +1,45 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.0 → 1.4.0
+Bump rationale: MINOR — material scope change to 003 (renamed: Kelos runner work dropped),
+C-05 reworded, a new constraint (C-10 telemetry), a new end state, and a new open question.
+
+Changes this revision (owner decision 2026-11-13; constitution amended to 1.1.0 the same day):
+  - Positioning: Kelos is a competitor and design reference, not a dependency or runner
+    (constitution VI). Target environments: laptops and enterprise (constitution VII)
+  - C-05 reworded accordingly; Kelos runner adoption removed
+  - 003 renamed "M2 hardened images and Kelos competitive review"; scope: GitHub-built
+    digest-pinned images (laptop and enterprise ready) plus a factual competitive review
+    (security bar comparison and a gap list of Kelos features enterprises expect)
+  - New C-10: first-party telemetry is operator observability only; no phone-home
+  - New end state: runs on laptops and in enterprise environments
+  - New Q6: which spec delivers operator observability (C-10)
+  - Cross-cutting: PRD F10 drift noted, then resolved the same day (PRD updated by the owner's approval)
+
+Specs affected: 003 (and 005 via C-10)
+Open questions added/resolved: Q6 added
+
+Previous revision 1.3.0 (2026-11-13):
+Version change: 1.2.0 → 1.3.0
+Bump rationale: MINOR — material scope change to 003, an amended constraint (C-05) and a new
+constraint (C-09), plus a note on 005.
+
+Changes this revision (owner decision 2026-11-13, after reading Kelos v0.64.0's source during
+003 planning: security first):
+  - C-05 amended: wrap Kelos, never fork; if Kelos cannot meet the security bar by
+    configuration alone, do not adopt it (plain Jobs stays the runner; Kelos is a reference)
+  - New C-09: pilot images built by GitHub Actions from verified upstream sources, published
+    to a public registry per target platform (GHCR for kind; possibly Quay variants for
+    OpenShift), referenced only by digest
+  - Scope changed on 003: assess Kelos against a security bar with a possible `do-not-adopt`
+    outcome; forking Kelos is out of scope; GitHub-built images added; outcome reworded
+  - Note added on 005: decide OpenShift image variants on Quay vs mirroring the C-09 images
+
+Specs affected: 003, 005
+Open questions added/resolved: Q2 resolved (wrap or do not adopt; never fork)
+
+Previous revision 1.2.0 (2026-11-13):
 Version change: 1.1.0 → 1.2.0
 Bump rationale: MINOR — new constraints (C-07, C-08), a new planned spec (006) and a
 material scope change on 003, plus a status transition on 002.
@@ -70,6 +109,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   credential (auditable from evidence records).
 - From a fresh kind cluster to the first draft PR in one documented command
   sequence, with verified teardown.
+- The same governed pilot runs on a laptop (kind) and in an enterprise environment
+  (OpenShift restricted SCC, arbitrary UID, mirrored or air-gapped registries, proxies),
+  with a small trust base and audit evidence a security team can review.
 
 ## Constraints & Decisions
 
@@ -83,8 +125,15 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   workers (PRD S1–S6, constitution IV).
 - **C-04 — Human merge only:** draft PRs only, one per item or task, never
   auto-merge (PRD F8, constitution V).
-- **C-05 — Wrap Kelos, don't fork:** fork only if token split, bundle-out or stage
-  retry cannot be worked around (PRD Q2 default, constitution VI).
+- **C-05 — ~~Wrap Kelos, don't fork~~ Kelos is a competitor, not a dependency:**
+  ~~fork only if token split, bundle-out or stage retry cannot be worked around (PRD Q2
+  default, constitution VI).~~ ~~**Amended 2026-11-13:** never fork. Kelos is adopted as a
+  runner only if it meets the security bar (spec 003) through configuration alone.
+  Otherwise it is not adopted: plain Jobs remains the runner and Kelos is used as a
+  reference only (constitution II, IV, VI).~~ **Amended again 2026-11-13 (constitution
+  1.1.0):** Kelos is a competitor and design reference. It is not adopted as a runner or
+  forked. Its ideas may be borrowed, with Apache-2.0 licence and NOTICE kept for any copied
+  code. Public comparisons stay factual. Plain Jobs is the runner now and OpenShift next.
 - **C-06 — Enforcing CNI:** isolation tests run on Calico or Cilium; kind's
   default CNI does not enforce NetworkPolicy (PRD S4).
 - **C-07 — Egress through per-role allowlist proxies:** worker and publisher egress
@@ -96,6 +145,18 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   between a worker and the grader. Worker results leave only as a framed stdout result
   collected by the orchestrator; grading material lives only in grader namespaces (PRD
   S5; decided in 002, research R5).
+- **C-09 — Images built in GitHub, pinned by digest:** pilot images are built by GitHub
+  Actions from verified upstream sources (never an operator's local binary), contain no
+  secrets, are published to a public registry chosen per target platform, and are
+  referenced only by digest. kind and local runs use GHCR (`ghcr.io/tosin2013/
+  specfoundry-*`). The OpenShift target may use different images published to Quay (for
+  example UBI-based variants for OpenShift's arbitrary-UID restricted SCC); 005 decides
+  (PRD S6, constitution VII; decided 2026-11-13).
+- **C-10 — Telemetry is operator observability only:** no third-party telemetry. First-party
+  telemetry means metrics, traces and events (e.g. OpenTelemetry or Prometheus) sent only to
+  a collector the operator runs. Nothing leaves the operator's environment unless they
+  configure it; no phone-home usage telemetry; never secrets, prompts or source code
+  (constitution Security & Isolation Constraints, 1.1.0).
 
 ## Planned Specs
 
@@ -137,22 +198,53 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   audit 11/11, teardown 3/3, mutation test caught all. Evidence:
   specs/002-m1-gated-pilot/evidence/20261113T030655Z. Known limits are in the 002 plan.
 
-### 003 — M2 Kelos backend  [status: planned]
+### 003 — M2 hardened images and Kelos competitive review  [status: planned]
 
-- **Description:** Run the M1 pilot through Kelos behind an adapter.
-- **Outcome:** Same pilot result as 002 with Kelos as the runner: namespace,
-  policies, thin image, gate stage, publisher and separate grader all preserved.
-- **Scope (in):** written read-only Kelos review (security model, token handling,
-  bundle-out, stage retry) as the input to C-05; Kelos adapter; pinned Kelos version
-  with telemetry off; thin OpenCode reference image pinned by digest; the Kelos
-  adapter implements the 002 runner interface (`pilot/specfoundry_pilot/runner/base.py`)
-  and keeps C-07 and C-08; pin and check the Calico manifest sha256
-  (`CALICO_SHA256` in `pilot/pins.env`, checked by `pilot up`).
-- **Scope (out):** other harness images, OpenShift.
+- **Description:** Build the pilot's images in GitHub so they run on laptops and in
+  enterprise environments, and write a factual competitive review of Kelos.
+- **Outcome:** GitHub Actions builds the worker (OpenCode from a checksum-verified upstream
+  release), tools and egress images, publishes them as public digest-pinned images, and
+  `pilot up` pulls them by digest; a plain-Jobs pilot run on those images passes its full
+  audit. A written review compares Kelos v0.64.0 with specfoundry against the security bar,
+  and lists the Kelos features enterprises expect, as candidate roadmap items.
+- **Scope (in):** image workflow (registry as a parameter; GHCR now); arbitrary-UID-friendly,
+  non-root, no-sudo images with no secrets; digest PRs to `pilot/pins.env`; pull-by-digest
+  `pilot up` with `--local-build` fallback; Calico manifest hash pinned and checked;
+  competitive review (security bar SB-1–SB-8 comparison, enterprise gap list); optional
+  Kelos-compatible entrypoint in the worker image so Kelos users can run it.
+- **Scope (out):** Kelos runner adapter or install; forking Kelos; other harness images;
+  OpenShift (005); operator observability (see Q6).
 - **Depends on:** 002
-- **Governed by:** C-03, C-05, C-07, C-08
-- **Notes:** Revisit per-run provider keys here (see Cross-Cutting Notes).
-- **Addresses:** docs/prd.md §9 M2, F10
+- **Governed by:** C-03, C-05, C-07, C-08, C-09, C-10
+- **Addresses:** docs/prd.md §9 M2 (re-scoped), S6, N1, N3
+- **Notes:** Renamed from "M2 Kelos backend" on 2026-11-13. Revisit per-run provider keys
+  here (see Cross-Cutting Notes). Superseded entry text (roadmap 1.3.0), kept for history:
+  ~~(former description) ~~Run the M1 pilot through Kelos behind an adapter.~~ Assess Kelos~~
+  ~~against the security bar and adopt it as the worker runner only if it meets the bar by~~
+  ~~configuration; build the pilot's images in GitHub.~~
+  ~~(former outcome) ~~Same pilot result as 002 with Kelos as the runner: namespace,~~
+  ~~policies, thin image, gate stage, publisher and separate grader all preserved.~~ A~~
+  ~~written review scores Kelos against the security bar and records `wrap`,~~
+  ~~`wrap-with-workarounds` or `do-not-adopt`. If adopted, the 002 pilot result is~~
+  ~~reproduced with Kelos running the workers (gate, publisher and separate grader~~
+  ~~preserved). If not, plain Jobs stays the runner. Either way, the pilot's images are~~
+  ~~built by GitHub Actions and pulled by digest (C-09).~~
+  ~~(former scope (in)) written read-only Kelos review (security model, token handling,~~
+  ~~bundle-out, stage retry) as the input to C-05; Kelos adapter; pinned Kelos version~~
+  ~~with telemetry off; thin OpenCode reference image pinned by digest; the Kelos~~
+  ~~adapter implements the 002 runner interface (`pilot/specfoundry_pilot/runner/base.py`)~~
+  ~~and keeps C-07 and C-08; pin and check the Calico manifest sha256~~
+  ~~(`CALICO_SHA256` in `pilot/pins.env`, checked by `pilot up`). Added 2026-11-13: the~~
+  ~~security bar (no SCM credential in workers, no sudo, no automatic retries, telemetry off,~~
+  ~~digest pins, effective token off, C-07/C-08 kept, controller privileges reviewed and~~
+  ~~accepted); the Kelos adapter only if the review adopts; GitHub Actions building~~
+  ~~`pilot-worker` (OpenCode from a verified upstream release), `pilot-tools` and~~
+  ~~`pilot-egress` to public GHCR, with `pilot up` pulling by digest.~~
+  ~~(former scope (out)) other harness images, OpenShift, **forking Kelos** (C-05).~~
+  ~~(former dependency) 002~~
+  ~~(former governed by) C-03, C-05, C-07, C-08, C-09~~
+  ~~(former notes) Revisit per-run provider keys here (see Cross-Cutting Notes).~~
+  ~~(former addresses) docs/prd.md §9 M2, F10~~
 
 ### 004 — M3 GitHub loop  [status: planned]
 
@@ -182,7 +274,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Depends on:** 003
 - **Addresses:** docs/prd.md §9 M4, F2, N1
 - **Notes:** In-cluster planning is optional per the PRD; OpenShift is the
-  required part.
+  required part. Decide whether OpenShift needs its own image variants (for example UBI
+  base, arbitrary-UID support) published to Quay, or the C-09 images mirrored there; the
+  003 image workflow takes the registry as a parameter.
 
 ### 006 — Operator guide: repeat the pilot from zero  [status: planned]
 
@@ -207,7 +301,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 - Q1 — Final project name and repo location (new repo vs. inside the spec-status
   org). Interim home: GitHub repo tosin2013/specfoundry.
-- Q2 — Kelos as wrapped dependency vs. fork (default: wrap, see C-05).
+- Q2 — Kelos as wrapped dependency vs. fork (default: wrap, see C-05). **Resolved
+  2026-11-13:** never fork; wrap only if the security bar is met by configuration,
+  otherwise do not adopt (C-05 amended).
 - Q3 — Which machine runs M1 and M2 (Ubuntu box, Mac, another lab machine). **M1 decided
   2026-11-13:** the Ubuntu host (31 GB, 8 CPUs). Still open for M2.
 - Q4 — Granularity: one worker run per roadmap entry, or per task or issue. **Decided
@@ -217,6 +313,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   default to $1 per attempt with a 2M-token fallback when the provider reports no cost.
   Still open: provider choice for shared use, and USD accounting (declaring model
   prices).
+- Q6 — Which spec delivers operator observability (C-10): metrics, traces and events for
+  gate decisions, attempts, spend and run duration to an operator-run collector? Candidates:
+  a new entry after 003, or folded into 004/005.
 
 ## Cross-Cutting Notes
 
@@ -225,6 +324,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   issues. **002 workarounds in place:** the gate runs on the host (no CLI image); the
   grader uses `spec status --json` (no report-only `verify-readiness`); reconcile is a
   deterministic pilot step (the skill needs an agent). See the 002 plan, Known limits.
+- ~~**PRD drift (2026-11-13):** docs/prd.md F10 ("First backend is Kelos") and §9 M2 still
+  describe Kelos as a backend. The owner has been sent replacement text; until the PRD is
+  edited, the roadmap and constitution 1.1.0 take precedence.~~ Resolved 2026-11-13: the
+  PRD was updated (F10, §6, §7, §9 M2, Q2, N1, new N4).
 - **Accepted deviation (002):** constitution IV asks for per-run worker keys with spend
   caps. 002 copies a long-lived provider key into a per-attempt Secret (deleted with the
   attempt) and enforces the cap with the pilot watchdog and deadline. Accepted by the
@@ -232,4 +335,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.2.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 1.4.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13

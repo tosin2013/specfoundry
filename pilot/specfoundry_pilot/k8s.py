@@ -104,6 +104,22 @@ def exec_(ns: str, pod: str, *cmd, timeout: int = 30) -> subprocess.CompletedPro
     return kubectl("-n", ns, "exec", pod, "--", *cmd, check=False, timeout=timeout)
 
 
+PULL_ERRORS = ("ImagePullBackOff", "ErrImagePull", "InvalidImageName", "ErrImageNeverPull")
+
+
+def pull_errors(ns: str) -> list[str]:
+    """Return 'pod: image (reason)' for containers stuck on an image pull in a namespace."""
+    out = []
+    pods = (get_json("-n", ns, "get", "pods", check=False) or {}).get("items", [])
+    for p in pods:
+        statuses = (p.get("status", {}).get("containerStatuses") or []) + (p.get("status", {}).get("initContainerStatuses") or [])
+        for cs in statuses:
+            w = (cs.get("state") or {}).get("waiting") or {}
+            if w.get("reason") in PULL_ERRORS:
+                out.append(f"{p['metadata']['name']}: {cs.get('image')} ({w['reason']})")
+    return out
+
+
 def wait_pod_ready(ns: str, pod: str, timeout: int = 180) -> bool:
     return kubectl("-n", ns, "wait", "--for=condition=Ready", f"pod/{pod}", f"--timeout={timeout}s",
                    check=False, timeout=timeout + 10).returncode == 0

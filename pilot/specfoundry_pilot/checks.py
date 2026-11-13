@@ -107,7 +107,8 @@ def run_worker_checks(run, imgs: dict, task: str, n: int, ns: str) -> None:
         k8s.apply(k8s.render(paths.MANIFESTS / "worker-ns.yaml.tmpl", NS=twin, RUN_ID=run.id))
         k8s.apply(k8s.render(paths.MANIFESTS / "worker-probe.yaml.tmpl", NS=twin, TOOLS_IMAGE=imgs["tools"]))
         ready = k8s.wait_pod_ready(twin, "probe", 120)
-        host = (os.environ.get("PILOT_PROBE_MODEL_URL") or f"https://{run.state.get('model_host') or ''}/").rstrip("/") + "/"
+        mh = paths.MODEL_HOST.read_text().strip() if paths.MODEL_HOST.exists() else ""
+        host = (os.environ.get("PILOT_PROBE_MODEL_URL") or f"https://{mh}/").rstrip("/") + "/"
         m_ok, m_d = reach(twin, "probe", host, MODEL_PROXY) if ready else (False, "probe not ready")
         g_ok, g_d = blocked(twin, "probe", "https://github.com/", MODEL_PROXY) if ready else (False, "")
         d_ok, d_d = blocked(twin, "probe", "https://1.1.1.1/") if ready else (False, "")
