@@ -13,9 +13,13 @@ IMAGES_LOCK = PILOT / "images.lock"
 DEFAULT_FEATURE_DIR = ROOT / "specs" / "002-m1-gated-pilot"
 
 
+RUNS_DIR = ROOT / "pilot" / "runs"  # git-ignored; operators' runs when no feature is active
+
+
 def feature_dir() -> Path:
-    """Evidence goes to the active Spec Kit feature (`.specify/feature.json`, set by
-    /speckit-specify), else to 002's folder. `PILOT_EVIDENCE_FEATURE` (a specs/ path) overrides."""
+    """The Spec Kit feature whose evidence folder receives runs: `PILOT_EVIDENCE_FEATURE` (a specs/
+    path), else the active feature in `.specify/feature.json` (set by /speckit-specify). Returns
+    DEFAULT_FEATURE_DIR only for callers that need a feature; see evidence_root()."""
     import json
     import os
     override = os.environ.get("PILOT_EVIDENCE_FEATURE")
@@ -31,8 +35,27 @@ def feature_dir() -> Path:
     return DEFAULT_FEATURE_DIR
 
 
+def evidence_root() -> Path:
+    """Where run evidence goes (analysis H2):
+    - `PILOT_EVIDENCE_FEATURE` set            -> <that spec>/evidence   (maintainers)
+    - an active feature in .specify/feature.json -> <feature>/evidence  (maintainers)
+    - otherwise                                 -> pilot/runs/          (operators; git-ignored)
+    so a newcomer's runs never land inside another spec's committed evidence."""
+    import json
+    import os
+    if os.environ.get("PILOT_EVIDENCE_FEATURE"):
+        return feature_dir() / "evidence"
+    try:
+        d = ROOT / json.loads((ROOT / ".specify" / "feature.json").read_text())["feature_directory"]
+        if d.is_dir():
+            return d / "evidence"
+    except (OSError, ValueError, KeyError):
+        pass
+    return RUNS_DIR
+
+
 FEATURE_DIR = feature_dir()
-EVIDENCE_ROOT = FEATURE_DIR / "evidence"
+EVIDENCE_ROOT = evidence_root()
 UP_OK = BUILD / "up.ok"
 IMAGES_JSON = BUILD / "images.json"
 IMAGE_SOURCE = BUILD / "image-source.txt"

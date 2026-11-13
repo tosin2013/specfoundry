@@ -90,3 +90,26 @@ class TestFeatureDir(unittest.TestCase):
             import os
             os.environ.pop("PILOT_EVIDENCE_FEATURE", None)
             self.assertEqual(paths.feature_dir(), paths.DEFAULT_FEATURE_DIR)
+
+    def test_evidence_root_newcomer_uses_pilot_runs(self):
+        # H2: a fresh clone has no .specify/feature.json; runs must not land in specs/002.
+        with tempfile.TemporaryDirectory() as t, mock.patch.object(paths, "ROOT", Path(t)), \
+             mock.patch.object(paths, "RUNS_DIR", Path(t) / "pilot" / "runs"):
+            import os
+            os.environ.pop("PILOT_EVIDENCE_FEATURE", None)
+            self.assertEqual(paths.evidence_root(), Path(t) / "pilot" / "runs")
+
+    def test_evidence_root_active_feature(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            (root / ".specify").mkdir()
+            (root / "specs" / "009-x").mkdir(parents=True)
+            (root / ".specify" / "feature.json").write_text('{"feature_directory": "specs/009-x"}')
+            with mock.patch.object(paths, "ROOT", root):
+                import os
+                os.environ.pop("PILOT_EVIDENCE_FEATURE", None)
+                self.assertEqual(paths.evidence_root(), root / "specs" / "009-x" / "evidence")
+
+    def test_evidence_root_override(self):
+        with mock.patch.dict("os.environ", {"PILOT_EVIDENCE_FEATURE": "specs/002-m1-gated-pilot"}):
+            self.assertEqual(paths.evidence_root(), paths.ROOT / "specs" / "002-m1-gated-pilot" / "evidence")
