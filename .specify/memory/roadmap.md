@@ -1,6 +1,27 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.0 → 1.5.0
+Bump rationale: MINOR — four new planned specs (007–010) and an open question resolved,
+plus a status transition (003 → verified) and wording updates.
+
+Changes this revision (from debrief specs/003-m2-kelos-backend/roadmap-reviews/
+debrief-20261113T182000Z.md; owner decisions 2026-11-13):
+  - Status: 003 planned → verified (validation run 20261113T180203Z on GHCR images: checks
+    32/32, audit 11/11, teardown 3/3; CI and enterprise evidence; evidence merged to main via
+    PR #3); spec dir linked
+  - 003 scope wording and C-09: digests live in pilot/images.lock (outputs, never a workflow
+    trigger); pilot/pins.env holds inputs
+  - New entries: 007 Operator observability (closes Q6), 008 More harnesses, 009 Period
+    spend budget at the gate, 010 Event-proposed runs
+  - Per-run provider keys: revisited in 003 with no change; carried to 005
+  - Notes: 004 (GitHub Actions PR permission; public-repo permissions field), 005
+    (per-run keys; explicit podFailurePolicy candidate), Q1 (public, Apache-2.0)
+
+Specs affected: 003, 004, 005, 007, 008, 009, 010
+Open questions added/resolved: Q6 resolved (→ 007)
+
+Previous revision 1.4.0 (2026-11-13):
 Version change: 1.3.0 → 1.4.0
 Bump rationale: MINOR — material scope change to 003 (renamed: Kelos runner work dropped),
 C-05 reworded, a new constraint (C-10 telemetry), a new end state, and a new open question.
@@ -148,7 +169,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **C-09 — Images built in GitHub, pinned by digest:** pilot images are built by GitHub
   Actions from verified upstream sources (never an operator's local binary), contain no
   secrets, are published to a public registry chosen per target platform, and are
-  referenced only by digest. kind and local runs use GHCR (`ghcr.io/tosin2013/
+  referenced only by digest. Digests live in `pilot/images.lock` (written only by the
+  image workflow's PR and never a workflow trigger); build inputs live in `pilot/pins.env`.
+  kind and local runs use GHCR (`ghcr.io/tosin2013/
   specfoundry-*`). The OpenShift target may use different images published to Quay (for
   example UBI-based variants for OpenShift's arbitrary-UID restricted SCC); 005 decides
   (PRD S6, constitution VII; decided 2026-11-13).
@@ -198,7 +221,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   audit 11/11, teardown 3/3, mutation test caught all. Evidence:
   specs/002-m1-gated-pilot/evidence/20261113T030655Z. Known limits are in the 002 plan.
 
-### 003 — M2 hardened images and Kelos competitive review  [status: planned]
+### 003 — M2 hardened images and Kelos competitive review  [status: verified]
 
 - **Description:** Build the pilot's images in GitHub so they run on laptops and in
   enterprise environments, and write a factual competitive review of Kelos.
@@ -208,7 +231,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   audit. A written review compares Kelos v0.64.0 with specfoundry against the security bar,
   and lists the Kelos features enterprises expect, as candidate roadmap items.
 - **Scope (in):** image workflow (registry as a parameter; GHCR now); arbitrary-UID-friendly,
-  non-root, no-sudo images with no secrets; digest PRs to `pilot/pins.env`; pull-by-digest
+  non-root, no-sudo images with no secrets; digest PRs to ~~`pilot/pins.env`~~ `pilot/images.lock`; pull-by-digest
   `pilot up` with `--local-build` fallback; Calico manifest hash pinned and checked;
   competitive review (security bar SB-1–SB-8 comparison, enterprise gap list); optional
   Kelos-compatible entrypoint in the worker image so Kelos users can run it.
@@ -217,8 +240,13 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Depends on:** 002
 - **Governed by:** C-03, C-05, C-07, C-08, C-09, C-10
 - **Addresses:** docs/prd.md §9 M2 (re-scoped), S6, N1, N3
+- **Spec dir:** specs/003-m2-kelos-backend
 - **Notes:** Renamed from "M2 Kelos backend" on 2026-11-13. Revisit per-run provider keys
-  here (see Cross-Cutting Notes). Superseded entry text (roadmap 1.3.0), kept for history:
+  here (see Cross-Cutting Notes): revisited 2026-11-13, no change (Kelos uses a static
+  key Secret too); carried to 005. Verified 2026-11-13: validation run 20261113T180203Z on
+  the GHCR images (checks 32/32, audit 11/11, teardown 3/3, `image_source: pinned`);
+  images public with provenance and SBOM; no rebuild loop; arbitrary-UID and mirror checks
+  pass. Evidence: specs/003-m2-kelos-backend/evidence/. Superseded entry text (roadmap 1.3.0), kept for history:
   ~~(former description) ~~Run the M1 pilot through Kelos behind an adapter.~~ Assess Kelos~~
   ~~against the security bar and adopt it as the worker runner only if it meets the bar by~~
   ~~configuration; build the pilot's images in GitHub.~~
@@ -260,7 +288,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   1-hour installation token per run, scoped to the target repo, so PRs show
   `<app>[bot]` rather than the owner's account. In 002 the token owner is the operator,
   which weakens PRD §10 metric 2 as seen from GitHub (the evidence audit still shows the
-  publisher Job opened every PR).
+  publisher Job opened every PR). Learned in 003: new repositories block GitHub Actions
+  from opening PRs until *Allow GitHub Actions to create and approve pull requests* is
+  enabled; on a public repository the `permissions` field of `GET /repos` reports the
+  account's rights, not a fine-grained token's (use a write probe instead).
 
 ### 005 — M4 in-cluster planning and OpenShift target  [status: planned]
 
@@ -276,7 +307,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** In-cluster planning is optional per the PRD; OpenShift is the
   required part. Decide whether OpenShift needs its own image variants (for example UBI
   base, arbitrary-UID support) published to Quay, or the C-09 images mirrored there; the
-  003 image workflow takes the registry as a parameter.
+  003 image workflow takes the registry as a parameter (003 showed the images already run
+  as an arbitrary UID and mirror by digest). Revisit per-run provider keys here (carried
+  from 003; enterprise secret managers may make them practical). Candidate: an explicit
+  `podFailurePolicy` on worker Jobs, so infrastructure disruptions are recorded distinctly
+  from worker failures (from the 003 Kelos review).
 
 ### 006 — Operator guide: repeat the pilot from zero  [status: planned]
 
@@ -297,10 +332,71 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Requested by the owner 2026-11-13. Use run 20261113T030655Z as the
   worked example.
 
+### 007 — Operator observability  [status: planned]
+
+- **Description:** Metrics, traces and events that operators can use to watch and audit
+  pilot runs in their own environment.
+- **Outcome:** Gate decisions, attempts, spend and run duration are emitted as metrics,
+  traces and events (OpenTelemetry/Prometheus) to an operator-run collector. Nothing leaves
+  the environment unless configured, and evidence and telemetry carry no secrets, prompts
+  or code.
+- **Scope (in):** instrumentation of the gate, attempts, grading, publishing and spend; an
+  export to an operator-configured collector; documentation.
+- **Scope (out):** phone-home or vendor-hosted telemetry; dashboards as a product.
+- **Depends on:** 002
+- **Governed by:** C-10
+- **Addresses:** constitution Security & Isolation Constraints (telemetry); docs/prd.md N4
+- **Notes:** Proposed in the 003 Kelos review; closes Q6 (owner decision 2026-11-13).
+
+### 008 — More harnesses (Claude Code, Codex)  [status: planned]
+
+- **Description:** Additional worker harnesses behind the same worker contract.
+- **Outcome:** Each harness ships as a thin, digest-pinned, no-sudo worker image built by
+  the `pilot-images` workflow, behind the same worker contract; a pilot run with each
+  passes its full audit.
+- **Scope (in):** Claude Code and Codex worker images; per-harness configuration docs;
+  spend accounting from each harness's usage output.
+- **Scope (out):** other harnesses; harness-specific features outside the worker contract.
+- **Depends on:** 003
+- **Governed by:** C-03, C-07, C-09
+- **Addresses:** docs/prd.md §2 (harness-agnostic), N2
+- **Notes:** Proposed in the 003 Kelos review (owner decision 2026-11-13).
+
+### 009 — Period spend budget at the gate  [status: planned]
+
+- **Description:** A spend limit per day or per project, enforced before work starts.
+- **Outcome:** A daily or project spend limit is checked at the gate before any worker
+  starts, fails closed when exceeded or unevaluable, and is recorded in the evidence; it
+  adds to the per-attempt cap rather than replacing it.
+- **Scope (in):** budget configuration; spend accounting across runs; gate integration;
+  evidence fields.
+- **Scope (out):** provider billing integrations.
+- **Depends on:** 002
+- **Governed by:** C-01, C-02
+- **Addresses:** docs/prd.md F7
+- **Notes:** Idea borrowed from Kelos's admission-time TaskBudget (attributed in the 003
+  review; owner decision 2026-11-13).
+
+### 010 — Event-proposed runs  [status: planned]
+
+- **Description:** Let authenticated external events propose work without bypassing
+  governance.
+- **Outcome:** Authenticated events (for example signed webhooks or an issue label) may
+  *propose* a roadmap item for a run; the spec-status gate and a human mode confirmation
+  still decide.
+- **Scope (in):** event authentication; proposal recording; handoff to the gate and the
+  mode confirmation.
+- **Scope (out):** automatic runs without human confirmation; unauthenticated endpoints.
+- **Depends on:** 004
+- **Governed by:** C-01, C-02, C-04
+- **Addresses:** docs/prd.md F6
+- **Notes:** Proposed in the 003 Kelos review (owner decision 2026-11-13).
+
 ## Open Questions
 
 - Q1 — Final project name and repo location (new repo vs. inside the spec-status
-  org). Interim home: GitHub repo tosin2013/specfoundry.
+  org). Interim home: GitHub repo tosin2013/specfoundry (public since 2026-11-13, Apache-2.0,
+  with CONTRIBUTING and a Code of Conduct).
 - Q2 — Kelos as wrapped dependency vs. fork (default: wrap, see C-05). **Resolved
   2026-11-13:** never fork; wrap only if the security bar is met by configuration,
   otherwise do not adopt (C-05 amended).
@@ -315,7 +411,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   prices).
 - Q6 — Which spec delivers operator observability (C-10): metrics, traces and events for
   gate decisions, attempts, spend and run duration to an operator-run collector? Candidates:
-  a new entry after 003, or folded into 004/005.
+  a new entry after 003, or folded into 004/005. **Resolved 2026-11-13:** entry 007.
 
 ## Cross-Cutting Notes
 
@@ -331,8 +427,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Accepted deviation (002):** constitution IV asks for per-run worker keys with spend
   caps. 002 copies a long-lived provider key into a per-attempt Secret (deleted with the
   attempt) and enforces the cap with the pilot watchdog and deadline. Accepted by the
-  owner 2026-11-13; revisit in 003.
+  owner 2026-11-13; revisit in 003. Revisited in 003 (no better mechanism found, including
+  in Kelos); carried to 005.
 
 ---
 
-**Version**: 1.4.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 1.5.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
