@@ -25,12 +25,34 @@ Rules that apply to every harness (constitution IV, PRD S2/S6):
   through the model egress proxy.
 - Its own output goes to files, never to stdout (stdout is reserved for the result frame).
 
-## How the M1 worker packages OpenCode
+## How the worker image packages OpenCode
 
-`pilot up` copies the operator's installed binary (`$HOME/.opencode/bin/opencode`) into the
-worker image and checks it against `OPENCODE_SHA256`. Update checks, model-catalogue fetches
-and free-model discovery are switched off in the image (`OPENCODE_DISABLE_AUTOUPDATE`,
-`OPENCODE_DISABLE_MODELS_FETCH`, `OPENCODE_DISABLE_FREE_MODELS`).
+The worker image is built by GitHub Actions (`.github/workflows/pilot-images.yml`), never
+from an operator's machine:
+- OpenCode comes from the upstream release named in `pilot/pins.env` (`OPENCODE_RELEASE`).
+- The build verifies the archive against the release's `SHA256SUMS` **and** the pinned
+  `OPENCODE_ASSET_SHA256`, then checks the extracted binary against `OPENCODE_SHA256`. A
+  mismatch fails the build, with no fallback.
+- Images are published as public packages, and `pilot up` pulls them by the digests in
+  `pilot/images.lock`. `pilot up --local-build` builds the same Dockerfiles locally for
+  development.
+
+Update checks, model-catalogue fetches and free-model discovery are switched off in the
+image (`OPENCODE_DISABLE_AUTOUPDATE`, `OPENCODE_DISABLE_MODELS_FETCH`,
+`OPENCODE_DISABLE_FREE_MODELS`).
+
+### Enterprise environments
+
+- **Arbitrary UID:** the images run under any assigned user ID with group 0 and a read-only
+  root filesystem (OpenShift's restricted SCC model). `pilot/images/smoke.sh` checks this in
+  CI on every build.
+- **Proxies:** the worker reaches its model only through `HTTPS_PROXY`. Point it at your
+  corporate proxy, or at the pilot's allowlisting egress proxy.
+- **Mirrored or air-gapped registries:** copy the images by digest into your registry and
+  point `pilot/images.lock` at the copies. The digests don't change.
+- **Kelos users:** the worker image also provides `/kelos_entrypoint.sh`, a compatibility shim
+  so it can run where Kelos's agent-image contract is expected. specfoundry itself does not
+  use or depend on Kelos.
 
 ## Configuring a provider for OpenCode
 

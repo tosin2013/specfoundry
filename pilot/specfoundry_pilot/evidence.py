@@ -161,6 +161,8 @@ def write_versions(run: Run, images: dict | None = None) -> None:
         f"opencode: {pins['OPENCODE_VERSION']} sha256={pins['OPENCODE_SHA256']}",
         f"registry_image: {pins['REGISTRY_IMAGE']}",
     ]
+    src = paths.IMAGE_SOURCE.read_text().strip() if paths.IMAGE_SOURCE.exists() else "unknown"
+    lines.append(f"image_source: {src}")
     for k, v in sorted((images or {}).items()):
         lines.append(f"image_{k}: {v}")
     lines.append(f"host: {_cmd(['uname', '-srm'])}")

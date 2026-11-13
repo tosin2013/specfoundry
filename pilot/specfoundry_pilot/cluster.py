@@ -29,33 +29,45 @@ def registry_running() -> bool:
     return r.stdout.strip() == "true"
 
 
-def up_cluster() -> None:
+def verify_calico(path, expected_sha256) -> None:
+    """FR-007: refuse to apply a CNI manifest whose sha256 differs from the pinned value."""
+    if not expected_sha256:
+        raise RuntimeError("CALICO_SHA256 is not pinned in pilot/pins.env")
+    got = evidence.sha256_file(path)
+    if got != expected_sha256:
+        raise RuntimeError(f"Calico manifest hash mismatch: expected {expected_sha256}, got {got}")
+
+
+def up_cluster(local_build: bool = False) -> None:
     pins = paths.read_pins()
     paths.BUILD.mkdir(parents=True, exist_ok=True)
     say("pinned tools")
     sh("bash", str(paths.ROOT / "test/isolation/tools.sh"),
        env={**os.environ, "KIND_VERSION": pins["KIND_VERSION"], "KUBECTL_VERSION": pins["KUBECTL_VERSION"]})
 
-    say("local registry")
-    if not registry_running():
-        sh("docker", "rm", "-f", paths.REGISTRY_NAME, check=False)
-        sh("docker", "run", "-d", "--restart=no", "--name", paths.REGISTRY_NAME,
-           "-p", "127.0.0.1:5001:5000", pins["REGISTRY_IMAGE"])
+    if local_build:
+        say("local registry (--local-build)")
+        if not registry_running():
+            sh("docker", "rm", "-f", paths.REGISTRY_NAME, check=False)
+            sh("docker", "run", "-d", "--restart=no", "--name", paths.REGISTRY_NAME,
+               "-p", "127.0.0.1:5001:5000", pins["REGISTRY_IMAGE"])
 
     say(f"kind cluster {paths.CLUSTER}")
     if not cluster_exists():
         sh("kind", "create", "cluster", "--config", str(paths.PILOT / "kind-config.yaml"), "--wait", "0s", timeout=900)
-    node = f"{paths.CLUSTER}-control-plane"
-    d = f"/etc/containerd/certs.d/{paths.REGISTRY_HOST}"
-    sh("docker", "exec", node, "mkdir", "-p", d)
-    sh("docker", "exec", "-i", node, "cp", "/dev/stdin", f"{d}/hosts.toml",
-       input=f'[host."http://{paths.REGISTRY_NAME}:5000"]\n')
-    sh("docker", "network", "connect", "kind", paths.REGISTRY_NAME, check=False)
+    if local_build:
+        node = f"{paths.CLUSTER}-control-plane"
+        d = f"/etc/containerd/certs.d/{paths.REGISTRY_HOST}"
+        sh("docker", "exec", node, "mkdir", "-p", d)
+        sh("docker", "exec", "-i", node, "cp", "/dev/stdin", f"{d}/hosts.toml",
+           input=f'[host."http://{paths.REGISTRY_NAME}:5000"]\n')
+        sh("docker", "network", "connect", "kind", paths.REGISTRY_NAME, check=False)
 
     say(f"calico {pins['CALICO_VERSION']}")
     calico = paths.BUILD / "calico.yaml"
     sh("curl", "-fsSL", "-o", str(calico),
        f"https://raw.githubusercontent.com/projectcalico/calico/{pins['CALICO_VERSION']}/manifests/calico.yaml")
+    verify_calico(calico, pins.get("CALICO_SHA256"))
     (paths.BUILD / "calico.sha256").write_text(evidence.sha256_file(calico) + "\n")
     k8s.kubectl("apply", "-f", str(calico), timeout=300)
     for args in (["-n", "kube-system", "rollout", "status", "ds/calico-node", "--timeout=300s"],
@@ -65,7 +77,7 @@ def up_cluster() -> None:
         k8s.kubectl(*args, timeout=360)
 
 
-def up(cfg, cluster_only: bool = False) -> None:
+def up(cfg, cluster_only: bool = False, local_build: bool = False) -> None:
     paths.UP_OK.unlink(missing_ok=True)
     if not cluster_only:
         from . import publisher_token
@@ -73,14 +85,21 @@ def up(cfg, cluster_only: bool = False) -> None:
         publisher_token.report(res)
         if not res.get("ok"):
             raise RuntimeError("publisher token check failed; fix it with `pilot publisher-token`")
-    up_cluster()
+    up_cluster(local_build=local_build)
     if cluster_only:
         say("cluster only: skipping images, proxies and publisher")
         return
     from . import images, infra  # late import: these need the full pilot config
-    imgs = images.build_all()
+    if local_build:
+        imgs, source = images.build_all(), "local-build"
+    else:
+        imgs, source = images.load_pinned(images.read_lock()), "pinned"
+        say("images: pulled by digest from pilot/images.lock")
+    paths.BUILD.mkdir(parents=True, exist_ok=True)
+    paths.IMAGES_JSON.write_text(json.dumps(imgs, indent=2) + "\n")
+    paths.IMAGE_SOURCE.write_text(source + "\n")
     infra.apply_all(cfg, imgs)
-    paths.UP_OK.write_text(json.dumps({"at": evidence.now(), "images": imgs}) + "\n")
+    paths.UP_OK.write_text(json.dumps({"at": evidence.now(), "images": imgs, "image_source": source}) + "\n")
     say("up complete")
 
 

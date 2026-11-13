@@ -17,7 +17,9 @@ def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="pilot", description="specfoundry M1 pilot")
     sub = p.add_subparsers(dest="cmd", required=True)
     up = sub.add_parser("up", help="stand up kind + Calico, registry, images, proxies, publisher")
-    up.add_argument("--cluster-only", action="store_true", help="only kind + Calico + registry (no config needed)")
+    up.add_argument("--cluster-only", action="store_true", help="only kind + Calico (no config needed)")
+    up.add_argument("--local-build", action="store_true",
+                    help="build images locally into a kind-local registry instead of pulling pinned digests")
     pt = sub.add_parser("publisher-token", help="write publisher.env from a hidden prompt and verify its scope")
     pt.add_argument("--check-only", action="store_true", help="only verify the existing publisher.env")
     rf = sub.add_parser("reset-fixture", help="force-reset the throwaway fixture repo")
@@ -81,7 +83,7 @@ def main(argv=None) -> int:
         if args.cmd == "up":
             from . import cluster, config
             cfg = None if args.cluster_only else config.load()
-            cluster.up(cfg, cluster_only=args.cluster_only)
+            cluster.up(cfg, cluster_only=args.cluster_only, local_build=args.local_build)
             return EXIT_OK
         if args.cmd == "publisher-token":
             from . import config, publisher_token

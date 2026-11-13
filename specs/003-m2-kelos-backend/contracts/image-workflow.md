@@ -3,7 +3,8 @@
 ## Triggers
 
 - `push` to `main` touching `pilot/images/**`, `pilot/specfoundry_pilot/frame.py` or the
-  input pins in `pilot/pins.env`, with `paths-ignore: [pilot/images.lock]`
+  input pins in `pilot/pins.env`; `pilot/images.lock` is excluded with a negated path filter
+  (`!pilot/images.lock`), because GitHub forbids `paths` and `paths-ignore` on one event
 - `workflow_dispatch` (manual)
 - `pull_request` touching the same paths: **build only, no push**
 
@@ -43,7 +44,7 @@ Docker builds aren't byte-reproducible, so a rebuild of unchanged inputs yields 
 The workflow therefore must never be triggered by its own output:
 - **Inputs** (`pilot/pins.env`, `pilot/images/**`, `frame.py`) trigger builds and are never
   edited by the bot.
-- **Output** (`pilot/images.lock`) is in `paths-ignore` and is the only file the bot's PR may
+- **Output** (`pilot/images.lock`) is excluded from the trigger paths and is the only file the bot's PR may
   change. The PR job fails if its diff touches anything else.
 - **Defence in depth:** jobs skip when the branch starts with `pilot-images/` or the head
   commit message contains `[pilot-images]`.

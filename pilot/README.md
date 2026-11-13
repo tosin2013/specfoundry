@@ -21,7 +21,9 @@ verified.
 ## Prerequisites
 
 - Docker, about 8 GB free RAM, Python 3.12, git, and `gh` logged in as you.
-- `spec` 0.2.0 and OpenCode 2.2.7 (`$HOME/.opencode/bin/opencode`).
+- `spec` 0.2.0 on the host (the gate runs there). The worker, tools and egress images are
+  pulled by digest from `pilot/images.lock`; they are built by the
+  [`pilot-images`](../.github/workflows/pilot-images.yml) workflow from verified upstream releases.
 - An empty GitHub repo named `<anything>-pilot-fixture`, and a fine-grained token for
   **that repo only** (contents: write, pull requests: write).
 - Operator configuration under `~/.config/specfoundry/`
@@ -34,7 +36,8 @@ verified.
 
 ```sh
 pilot/pilot publisher-token # hidden prompt -> publisher.env (0600), then verify scope + expiry
-pilot/pilot up              # kind + Calico, registry, images, proxies, publisher namespace
+pilot/pilot up              # kind + Calico (hash-checked), images by digest, proxies, publisher namespace
+pilot/pilot up --local-build  # development: build pilot/images/ locally instead of pulling
 pilot/pilot reset-fixture   # reset the throwaway repo to pilot/fixture/
 pilot/pilot run             # gate, confirm mode, A attempts (confirm retries), publish A, pause
 #   ... review and merge A's draft PR on GitHub ...

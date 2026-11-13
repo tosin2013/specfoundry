@@ -1,0 +1,7 @@
+# Pilot image digests (C-09). Written ONLY by the pilot-images workflow's digest PR.
+# This file is never a workflow trigger (paths-ignore), so merging a digest PR cannot start
+# another build (analysis F1). Inputs live in pilot/pins.env.
+IMAGE_REGISTRY=ghcr.io/tosin2013
+WORKER_IMAGE=
+TOOLS_IMAGE=
+EGRESS_IMAGE=

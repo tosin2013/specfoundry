@@ -1,0 +1,190 @@
+# Pilot images (spec 003, constraint C-09; contract specs/003-m2-kelos-backend/contracts/image-workflow.md)
+#
+# Builds specfoundry-pilot-{worker,tools,egress} from pilot/images/ with upstream inputs verified
+# by checksum (pilot/pins.env), smoke-tests them as an arbitrary UID, and on main pushes them to a
+# public registry with build provenance and an SBOM. The new digests are proposed as a PR that
+# changes ONLY pilot/images.lock.
+#
+# No rebuild loop (analysis F1): pilot/images.lock is excluded from the path filter and is the only file the bot
+# changes; inputs are never bot-edited; jobs also skip pilot-images/* branches and [pilot-images]
+# commits. PRs opened with GITHUB_TOKEN do not trigger workflows either.
+#
+# The publisher SCM token and model keys are never available here.
+name: pilot-images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pilot/images/**"
+      - "pilot/specfoundry_pilot/frame.py"
+      - "pilot/pins.env"
+      - ".github/workflows/pilot-images.yml"
+      - "!pilot/images.lock" # never a trigger (F1); GitHub forbids paths + paths-ignore together
+  pull_request:
+    paths:
+      - "pilot/images/**"
+      - "pilot/specfoundry_pilot/frame.py"
+      - "pilot/pins.env"
+      - ".github/workflows/pilot-images.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pilot-images-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: >-
+      !startsWith(github.head_ref || github.ref_name, 'pilot-images/') &&
+      !contains(github.event.head_commit.message || '', '[pilot-images]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        # Registry is a parameter (FR-006). 005 may add e.g. {registry: quay.io, namespace: <org>, variant: openshift}.
+        target:
+          - { registry: ghcr.io, namespace: tosin2013, variant: default }
+    env:
+      PUSH: ${{ github.event_name != 'pull_request' }}
+      REGISTRY: ${{ matrix.target.registry }}
+      NAMESPACE: ${{ matrix.target.namespace }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Prepare build contexts
+        run: |
+          set -euo pipefail
+          for i in worker tools egress; do
+            ctx="$RUNNER_TEMP/ctx-$i"; rm -rf "$ctx"; mkdir -p "$ctx"
+            cp -r "pilot/images/$i/." "$ctx/"
+            cp pilot/specfoundry_pilot/frame.py "$ctx/"
+          done
+
+      - name: Build locally (upstream checksums verified inside the Dockerfiles)
+        run: |
+          set -euo pipefail
+          for i in worker tools egress; do
+            args=(); while IFS= read -r kv; do args+=(--build-arg "$kv"); done < <(python3 pilot/images/build_args.py "$i")
+            docker buildx build --load -t "pilot-$i:ci" "${args[@]}" "$RUNNER_TEMP/ctx-$i"
+          done
+
+      - name: Smoke test as an arbitrary UID (US2)
+        run: WORKER=pilot-worker:ci TOOLS=pilot-tools:ci EGRESS=pilot-egress:ci pilot/images/smoke.sh
+
+      - name: Log in to registry
+        if: env.PUSH == 'true'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ${{ matrix.target.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push with provenance and SBOM (D1)
+        if: env.PUSH == 'true'
+        run: |
+          set -euo pipefail
+          short="${GITHUB_SHA::12}"
+          for i in worker tools egress; do
+            args=(); while IFS= read -r kv; do args+=(--build-arg "$kv"); done < <(python3 pilot/images/build_args.py "$i")
+            ref="$REGISTRY/$NAMESPACE/specfoundry-pilot-$i"
+            docker buildx build --push --provenance=mode=max --sbom=true \
+              --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+              --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+              --metadata-file "$RUNNER_TEMP/meta-$i.json" \
+              -t "$ref:sha-$short" "${args[@]}" "$RUNNER_TEMP/ctx-$i"
+          done
+
+      - name: Write image-digests.json
+        if: env.PUSH == 'true'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, datetime
+          tmp, reg, ns = os.environ["RUNNER_TEMP"], os.environ["REGISTRY"], os.environ["NAMESPACE"]
+          import sys; sys.path.insert(0, "pilot/images"); import build_args as ba
+          pins = ba.read_pins()
+          out = {"commit": os.environ["GITHUB_SHA"], "built_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                 "registry": f"{reg}/{ns}", "images": {}, "attestations": {},
+                 "inputs": {"opencode": {"release": pins["OPENCODE_RELEASE"], "asset": pins["OPENCODE_ASSET"],
+                                         "sha256": pins["OPENCODE_ASSET_SHA256"]},
+                            "spec": {"release": pins["SPEC_RELEASE"], "sha256": pins["SPEC_ASSET_SHA256"]},
+                            "bases": {"debian": pins["DEBIAN_BASE"], "alpine": pins["ALPINE_BASE"]}}}
+          for i in ("worker", "tools", "egress"):
+              meta = json.load(open(f"{tmp}/meta-{i}.json"))
+              out["images"][i] = f"{reg}/{ns}/specfoundry-pilot-{i}@{meta['containerimage.digest']}"
+              out["attestations"][i] = {"provenance": "mode=max", "sbom": "spdx"}
+          json.dump(out, open("image-digests.json", "w"), indent=2)
+          print(json.dumps(out["images"], indent=2))
+          PY
+
+      - name: Upload image-digests.json
+        if: env.PUSH == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-digests-${{ matrix.target.variant }}
+          path: image-digests.json
+
+  digest-pr:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download image-digests.json
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: image-digests-default
+
+      - name: Update pilot/images.lock only
+        id: lock
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, re
+          d = json.load(open("image-digests.json"))
+          p = "pilot/images.lock"; s = open(p).read()
+          for key, img in (("WORKER_IMAGE", "worker"), ("TOOLS_IMAGE", "tools"), ("EGRESS_IMAGE", "egress")):
+              ref = d["images"][img]
+              assert re.fullmatch(r"[a-z0-9./:-]+@sha256:[0-9a-f]{64}", ref), ref
+              s, n = re.subn(rf"^{key}=.*$", f"{key}={ref}", s, flags=re.M)
+              assert n == 1, key
+          open(p, "w").write(s)
+          PY
+          if git diff --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          others="$(git diff --name-only | grep -v '^pilot/images.lock$' || true)"
+          if [ -n "$others" ]; then echo "refusing: diff touches $others"; exit 1; fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open digest PR (never pushes to main)
+        if: steps.lock.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          short="${GITHUB_SHA::12}"; branch="pilot-images/$short"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add pilot/images.lock
+          git commit -m "chore(images): update digests from ${short} [pilot-images]"
+          git push --force origin "$branch"
+          body="$(printf 'Image digests built from %s by the pilot-images workflow.\n\nChanges only `pilot/images.lock` (C-09; never a workflow trigger, so merging does not rebuild).\n\n```json\n%s\n```\n' "$GITHUB_SHA" "$(cat image-digests.json)")"
+          gh pr create --base main --head "$branch" --title "chore(images): update pilot image digests (${short})" --body "$body" \
+            || gh pr edit "$branch" --body "$body"

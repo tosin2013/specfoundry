@@ -75,7 +75,7 @@ happens in `kelos-review.md`, the first implementation checkpoint (R1).
   Images are pushed to `ghcr.io/tosin2013/specfoundry-pilot-*` as **public** packages. The
   workflow uploads a digest manifest and opens a PR that updates **`pilot/images.lock`**
   (`WORKER_IMAGE=…@sha256:…`). It never pushes to `main` directly.
-- **No rebuild loop (analysis F1):** `pilot/images.lock` is in `paths-ignore` and is the only
+- **No rebuild loop (analysis F1):** `pilot/images.lock` is excluded from the trigger paths and is the only
   file the bot changes. The workflow's inputs (`pins.env`, `pilot/images/**`, `frame.py`) are
   never bot-edited. Docker builds aren't byte-reproducible, so without this split every
   digest merge would rebuild and open another PR. A branch and commit-marker guard adds
@@ -102,6 +102,12 @@ happens in `kelos-review.md`, the first implementation checkpoint (R1).
   - the upstream tarball's layout (binary path inside it);
   - whether the upstream binary's sha256 equals the host binary's
     (`589253d3…f5e1`). Record the result either way.
+- **Result (T018, 2026-11-13):** the upstream `opencode-linux-x64.tar.gz` (sha256 `89a6cee2…2ca7`,
+  matching the release's `SHA256SUMS`) contains a single `opencode` binary at the archive
+  root, and its sha256 is `589253d36810…f5e1`. That's **identical** to the host binary used in
+  002. The upstream spec binary (`spec_0.2.0_linux_amd64/spec`) is also identical to 002's
+  (`29420054…c966`). So the move to upstream inputs changes no behaviour, and the Dockerfiles
+  verify the archive, the release checksum file and the final binary.
 
 ## R5 — Calico manifest hash (FR-016)
 
