@@ -1,0 +1,7 @@
+# Local Claude Code settings
+.claude/settings.local.json
+# Secrets never belong here (constitution IV)
+.env
+*.pem
+*.key
+kubeconfig*
