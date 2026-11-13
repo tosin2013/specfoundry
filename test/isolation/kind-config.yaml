@@ -1,0 +1,10 @@
+# kind cluster for the M0 isolation suite. Default CNI (kindnet) is disabled because it
+# does not enforce NetworkPolicy (roadmap C-06); Calico is installed by run.sh.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: specfoundry-m0
+networking:
+  disableDefaultCNI: true
+  podSubnet: 192.168.0.0/16
+nodes:
+  - role: control-plane

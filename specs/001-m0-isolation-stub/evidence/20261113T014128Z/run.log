@@ -1,0 +1,73 @@
+== run 20261113T014128Z evidence -> specs/001-m0-isolation-stub/evidence/20261113T014128Z
+kind v0.27.0 go1.23.6 linux/amd64
+Client Version: v1.32.2
+Creating cluster "specfoundry-m0" ...
+ • Ensuring node image (kindest/node:v1.32.2) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.32.2) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+Set kubectl context to "kind-specfoundry-m0"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-specfoundry-m0
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+== calico v3.29.3
+Waiting for daemon set spec update to be observed...
+Waiting for daemon set "calico-node" rollout to finish: 0 of 1 updated pods are available...
+daemon set "calico-node" successfully rolled out
+deployment "calico-kube-controllers" successfully rolled out
+node/specfoundry-m0-control-plane condition met
+Waiting for deployment "coredns" rollout to finish: 1 of 2 updated replicas are available...
+deployment "coredns" successfully rolled out
+== fixtures
+== checks
+PASS C01   S4         Calico is the CNI and calico-node is ready (1/1)
+PASS C02   S4         kindnet (non-enforcing default CNI) is absent (absent)
+PASS C03   FR-001     worker namespace runs exactly one pod (pods=1)
+PASS C04   FR-001     worker pod has exactly one container (containers=1)
+PASS C05   FR-001     a second pod in the worker namespace is rejected by quota (rejected)
+PASS C06   FR-002     service account has automountServiceAccountToken=false (false)
+PASS C07   FR-002     pod has automountServiceAccountToken=false (false)
+PASS C08   FR-002     no token file inside the worker container (absent)
+PASS C09   FR-002     worker SA cannot read secrets in its own namespace (no)
+PASS C10   S5         worker SA cannot create pods in the grader namespace (no)
+PASS C11   S5         worker SA cannot exec or write in the grader namespace (exec=no configmaps=no)
+PASS C12   FR-003     default-deny policy covers Ingress and Egress (Ingress,Egress)
+PASS C13   FR-003     worker resolves cluster DNS (allowlisted) (Server:		10.96.0.10
+Address:	10.96.0.10:53
+
+Name:	target.m0-allowed.svc.cluster.local
+Address: 10.96.112.218)
+PASS C14   FR-003     worker reaches the allowlisted target (connected)
+PASS C15   FR-003     worker is blocked from the denied target (blocked)
+PASS C16   FR-003     control reaches the denied target (proves C15 is policy) (connected)
+PASS C17   S5         worker is blocked from the grader (blocked)
+PASS C18   S5         control reaches the grader (proves C17 is policy) (connected)
+PASS C19   FR-003     worker is blocked from the Kubernetes API (blocked)
+PASS C20   FR-003     control reaches the Kubernetes API (proves C19 is policy) (connected)
+PASS C21   FR-003     worker is blocked from the internet (blocked)
+PASS C22   FR-003     control reaches the internet (proves C21 is policy) (connected)
+PASS C23   FR-003     ingress to the worker is blocked (blocked)
+PASS C24   FR-003     worker is listening, so C23 is policy (loopback reach) (worker)
+PASS C25   FR-004     ResourceQuota caps pods, cpu, memory and secrets ({"count/secrets":"0","limits.cpu":"1","limits.memory":"512Mi","pods":"1","requests.cpu":"500m","requests.memory":"256Mi"})
+PASS C26   FR-004     worker pod has activeDeadlineSeconds (1800)
+PASS C27   FR-004     a pod past its deadline is killed (DeadlineExceeded) (DeadlineExceeded)
+PASS C28   FR-005     no Secrets exist in the worker namespace (secrets=0)
+PASS C29   FR-005     creating a Secret in the worker namespace is rejected (rejected)
+PASS C30   FR-005     worker environment carries no credential-like variables (none)
+PASS C31   FR-005     worker pod mounts no Secret volumes (none)
+PASS C32   S6         worker runs as non-root (uid != 0) (uid=65534)
+PASS C33   S6         no privilege escalation, all capabilities dropped, read-only root fs ({"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true})
+PASS C34   S6         no sudo in the worker image (absent)
+PASS C35   S6         worker image is pinned by digest (docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662)
+== teardown
+PASS T01   N3         kind cluster deleted (absent)
+PASS T02   N3         no kind node containers remain (containers=0)
+== result: 37 of 37 pass  evidence: specs/001-m0-isolation-stub/evidence/20261113T014128Z

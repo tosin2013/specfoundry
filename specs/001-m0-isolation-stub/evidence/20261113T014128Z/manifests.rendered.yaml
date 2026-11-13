@@ -1,0 +1,192 @@
+# M0 stub isolation fixtures. docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662 is replaced by run.sh with a digest-pinned image.
+#
+#   m0-worker   the isolated stub worker (policies, quota, no token, no credentials)
+#   m0-allowed  egress-allowlisted target
+#   m0-denied   target the worker must not reach
+#   m0-grader   grader stand-in the worker must not reach or write to (S5)
+#   m0-control  unrestricted probe: proves "blocked" results come from policy, not the network
+#   m0-deadline pod with a short activeDeadlineSeconds to prove deadlines are enforced
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: m0-worker, labels: {specfoundry.io/role: worker}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: m0-allowed, labels: {specfoundry.io/role: allowed}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: m0-denied, labels: {specfoundry.io/role: denied}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: m0-grader, labels: {specfoundry.io/role: grader}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: m0-control, labels: {specfoundry.io/role: control}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: m0-deadline, labels: {specfoundry.io/role: deadline}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: worker, namespace: m0-worker}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: worker-quota, namespace: m0-worker}
+spec:
+  hard:
+    pods: "1"
+    count/secrets: "0"
+    requests.cpu: 500m
+    requests.memory: 256Mi
+    limits.cpu: "1"
+    limits.memory: 512Mi
+---
+apiVersion: v1
+kind: LimitRange
+metadata: {name: worker-limits, namespace: m0-worker}
+spec:
+  limits:
+    - type: Container
+      default: {cpu: 500m, memory: 256Mi}
+      defaultRequest: {cpu: 100m, memory: 64Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny-all, namespace: m0-worker}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-egress-dns-and-allowlist, namespace: m0-worker}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+          podSelector: {matchLabels: {k8s-app: kube-dns}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+    - to:
+        - namespaceSelector: {matchLabels: {specfoundry.io/role: allowed}}
+          podSelector: {matchLabels: {app: target}}
+      ports: [{protocol: TCP, port: 8080}]
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: worker, namespace: m0-worker, labels: {app: worker}}
+spec:
+  serviceAccountName: worker
+  automountServiceAccountToken: false
+  activeDeadlineSeconds: 1800
+  restartPolicy: Never
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+    seccompProfile: {type: RuntimeDefault}
+  containers:
+    - name: worker
+      image: docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+      command: [sh, -c, "mkdir -p /tmp/www && echo worker > /tmp/www/index.html && httpd -p 8080 -h /tmp/www && sleep 1800"]
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities: {drop: [ALL]}
+      resources:
+        requests: {cpu: 100m, memory: 64Mi}
+        limits: {cpu: 500m, memory: 256Mi}
+      volumeMounts: [{name: tmp, mountPath: /tmp}]
+  volumes: [{name: tmp, emptyDir: {sizeLimit: 64Mi}}]
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: control, namespace: m0-control, labels: {app: control}}
+spec:
+  restartPolicy: Never
+  securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+  containers:
+    - name: control
+      image: docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+      command: [sleep, "1800"]
+      securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: deadline, namespace: m0-deadline}
+spec:
+  activeDeadlineSeconds: 20
+  restartPolicy: Never
+  securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+  containers:
+    - name: sleeper
+      image: docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+      command: [sleep, "600"]
+      securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: target, namespace: m0-allowed, labels: {app: target}}
+spec:
+  restartPolicy: Never
+  securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+  containers:
+    - name: target
+      image: docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+      command: [sh, -c, "mkdir -p /tmp/www && echo m0-allowed > /tmp/www/index.html && httpd -f -p 8080 -h /tmp/www"]
+      securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: target, namespace: m0-allowed}
+spec:
+  selector: {app: target}
+  ports: [{port: 8080, targetPort: 8080}]
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: target, namespace: m0-denied, labels: {app: target}}
+spec:
+  restartPolicy: Never
+  securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+  containers:
+    - name: target
+      image: docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+      command: [sh, -c, "mkdir -p /tmp/www && echo m0-denied > /tmp/www/index.html && httpd -f -p 8080 -h /tmp/www"]
+      securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: target, namespace: m0-denied}
+spec:
+  selector: {app: target}
+  ports: [{port: 8080, targetPort: 8080}]
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: target, namespace: m0-grader, labels: {app: target}}
+spec:
+  restartPolicy: Never
+  securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+  containers:
+    - name: target
+      image: docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+      command: [sh, -c, "mkdir -p /tmp/www && echo m0-grader > /tmp/www/index.html && httpd -f -p 8080 -h /tmp/www"]
+      securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: target, namespace: m0-grader}
+spec:
+  selector: {app: target}
+  ports: [{port: 8080, targetPort: 8080}]
+
+

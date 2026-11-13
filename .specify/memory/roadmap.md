@@ -1,20 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: none → 1.0.0
-Bump rationale: initial creation from docs/prd.md (2026-11-12 draft) and constitution v1.0.0.
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR — material scope change (Kelos read-only review moved from 001 to 003)
+plus a status transition.
 
 Changes this revision:
-  - Added spec 001 — M0 stub isolation test (implemented; not verified: 32/33 checks pass)
-  - Added specs 002–005 — M1 pilot, M2 Kelos backend, M3 GitHub loop, M4 in-cluster planning + OpenShift
-  - Decisions recorded: C-01 … C-06
-  - Open questions Q1–Q5 carried from PRD §11
+  - Status: 001 implemented → verified (rebuilt suite test/isolation/run.sh, 37/37 pass,
+    evidence specs/001-m0-isolation-stub/evidence/20261113T014128Z, teardown verified)
+  - Scope changed on 001: Kelos read-only review removed (no written review in repo)
+  - Scope changed on 003: Kelos read-only review added as a required input to C-05
 
-Specs affected: 001, 002, 003, 004, 005
-Open questions added/resolved: Q1–Q5 added; none resolved
+Specs affected: 001, 003
+Open questions added/resolved: none
 
-Notes: one entry per PRD milestone (owner decision, 2026-11-13). Finer per-capability
-entries may replace these later via supersession once Q4 (granularity) is decided.
+Notes: the original 2026-11-12 M0 run (32/33) was on another machine and is not
+reproducible here; the rebuilt suite replaces it. Owner approved the move on 2026-11-13.
+
+Previous revision 1.0.0 (2026-11-13): initial creation from docs/prd.md, entries 001–005,
+decisions C-01 … C-06, open questions Q1–Q5.
 -->
 
 # specfoundry — Spec Roadmap
@@ -63,22 +67,23 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ## Planned Specs
 
-### 001 — M0 stub isolation test on kind with Calico  [status: implemented]
+### 001 — M0 stub isolation test on kind with Calico  [status: verified]
 
-- **Description:** Stub worker isolation test suite on kind with Calico, plus a
-  read-only review of Kelos.
+- **Description:** Stub worker isolation test suite on kind with Calico.
 - **Outcome:** All isolation checks pass on kind with Calico, the evidence is
   recorded in the repo, and teardown is verified.
 - **Scope (in):** kind cluster with Calico, namespace/NetworkPolicy/ResourceQuota/
-  service-account checks for a stub worker, Kelos read-only review.
-- **Scope (out):** real harness images, grader, publisher, GitHub integration.
+  service-account checks for a stub worker.
+- **Scope (out):** real harness images, grader, publisher, GitHub integration, Kelos
+  review (moved to 003).
 - **Depends on:** none
 - **Governed by:** C-03, C-06
 - **Addresses:** docs/prd.md §9 M0
 - **Spec dir:** specs/001-m0-isolation-stub
-- **Notes:** Done 2026-11-12 with 32 of 33 checks passing. Recorded as
-  implemented, not verified: one check fails and the evidence record is not yet in
-  this repo.
+- **Notes:** First run 2026-11-12 on another machine passed 32 of 33. Rebuilt
+  here as test/isolation/run.sh; verified 2026-11-13 with 37 of 37 checks passing
+  (including teardown), control probes for every blocked path, and a mutation test.
+  Evidence: specs/001-m0-isolation-stub/evidence/20261113T014128Z.
 
 ### 002 — M1 pilot: two-task gate on kind with plain Jobs  [status: planned]
 
@@ -99,8 +104,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Description:** Run the M1 pilot through Kelos behind an adapter.
 - **Outcome:** Same pilot result as 002 with Kelos as the runner: namespace,
   policies, thin image, gate stage, publisher and separate grader all preserved.
-- **Scope (in):** Kelos adapter, pinned Kelos version with telemetry off, thin
-  OpenCode reference image pinned by digest.
+- **Scope (in):** written read-only Kelos review (security model, token handling,
+  bundle-out, stage retry) as the input to C-05; Kelos adapter; pinned Kelos version
+  with telemetry off; thin OpenCode reference image pinned by digest.
 - **Scope (out):** other harness images, OpenShift.
 - **Depends on:** 002
 - **Governed by:** C-03, C-05
@@ -148,4 +154,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 1.1.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
