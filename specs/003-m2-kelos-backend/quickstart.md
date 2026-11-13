@@ -13,7 +13,8 @@ gh pr list --head 'pilot-images/'       # digest PR; review and merge it
 
 Expected:
 - three public packages exist, `ghcr.io/tosin2013/specfoundry-pilot-{worker,tools,egress}`;
-- `pilot/pins.env` holds `@sha256:` references after the merge;
+- `pilot/images.lock` holds `@sha256:` references after the merge, and that merge starts
+  **no** new workflow run (no rebuild loop);
 - a PR touching `pilot/images/**` builds but does not push.
 
 ## 2. Enterprise readiness (US2)

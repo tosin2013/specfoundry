@@ -13,7 +13,8 @@ constitution 1.1.0)
      `specfoundry-pilot-tools` (spec binary verified by pinned sha256) and
      `specfoundry-pilot-egress`.
    - It pushes them as public GHCR packages and opens a PR updating the digests in
-     `pilot/pins.env`.
+     `pilot/images.lock` (outputs). That file is never a workflow trigger, so there is no
+     rebuild loop (analysis F1); `pilot/pins.env` holds only the inputs.
    - `pilot up` pulls by digest by default; `--local-build` keeps the 002 path. The Calico
      manifest hash is pinned and checked.
    - A plain-Jobs pilot run on these images re-validates everything (SC-002).
@@ -35,7 +36,7 @@ constitution 1.1.0)
 - GHCR;
 - GitHub-hosted runners (ubuntu, amd64).
 
-**Storage**: files (`pins.env`, evidence, review); GHCR packages.
+**Storage**: files (`pins.env` inputs, `images.lock` outputs, evidence, review); GHCR packages.
 
 **Testing**:
 - `python3 -m unittest`: pins validation (digest-only), Calico hash check, image-source
@@ -94,7 +95,8 @@ specs/003-m2-kelos-backend/
 
 ```text
 .github/workflows/pilot-images.yml   # NEW
-pilot/pins.env                       # + CALICO_SHA256, OPENCODE_RELEASE/ASSET_SHA256, *_IMAGE digests
+pilot/pins.env                       # inputs: + CALICO_SHA256, OPENCODE_RELEASE/ASSET_SHA256, SPEC_ASSET_SHA256
+pilot/images.lock                    # NEW outputs: *_IMAGE digests (bot PR only; never a workflow trigger)
 pilot/images/worker/Dockerfile       # upstream OpenCode + checksum; group-0 paths; /kelos_entrypoint.sh
 pilot/images/worker/kelos_entrypoint.sh   # NEW: exec wrapper (FR-010)
 pilot/images/tools/Dockerfile        # spec verified by pinned sha256; group-0 paths

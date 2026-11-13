@@ -44,3 +44,7 @@
   dependency. Spec rewritten: US1 GitHub-built images (P1), US2 enterprise-ready images
   (P2), US3 factual competitive review (P2); no Kelos install, adapter or fork (FR-014).
   All items pass.
+- Iteration 5 (2026-11-13, after /speckit-analyze): F1 fixed (digests moved to
+  `pilot/images.lock`, never a workflow trigger); C1 (a real worker job and grading under an
+  arbitrary UID) and D1 (provenance and SBOM on every image, FR-004a, SC-005a) added. All
+  items pass.

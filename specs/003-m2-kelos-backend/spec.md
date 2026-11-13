@@ -156,6 +156,9 @@ noted, so it doesn't get lost.
   runs), contain no secrets, and run non-root without sudo.
 - **FR-004**: New image digests MUST reach the repository's pins only through a reviewable
   change. The build MUST NOT push to the default branch.
+- **FR-004a**: Each published image MUST carry a build-provenance attestation and a software
+  bill of materials, so an enterprise security team can review what's inside and how it was
+  built (constitution VII).
 - **FR-005**: `pilot up` MUST pull images by the pinned digests by default, MUST refuse
   tag-only or missing references, and MUST build locally only when the operator explicitly
   asks. Which source was used MUST be recorded in the evidence.
@@ -209,11 +212,13 @@ noted, so it doesn't get lost.
 - **SC-002**: A plain-Jobs pilot run on the GitHub-built images passes 100% of its audit
   (the same AU checks as 002) and 100% of the live isolation checks.
 - **SC-003**: Each of the three images runs to completion under an arbitrary user ID with a
-  read-only root filesystem (3 of 3).
+  read-only root filesystem (3 of 3), including one real worker job that is then graded
+  successfully.
 - **SC-004**: A changed CNI hash or a tag-only image reference stops stand-up 100% of the
   time.
 - **SC-005**: New digests reach the pins only through merged pull requests: 0 direct pushes
   by the build.
+- **SC-005a**: 3 of 3 published images have a provenance attestation and an SBOM.
 - **SC-006**: The review covers 8 of 8 security-bar items for both products, with a
   citation or "unverified", and lists at least 5 capability items, each marked
   have/gap/won't do.

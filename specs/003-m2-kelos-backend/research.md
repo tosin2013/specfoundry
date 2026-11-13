@@ -73,8 +73,13 @@ happens in `kelos-review.md`, the first implementation checkpoint (R1).
   - **`specfoundry-pilot-egress`:** unchanged Alpine + tinyproxy.
 
   Images are pushed to `ghcr.io/tosin2013/specfoundry-pilot-*` as **public** packages. The
-  workflow uploads a digest manifest and opens a PR that updates `pilot/pins.env`
+  workflow uploads a digest manifest and opens a PR that updates **`pilot/images.lock`**
   (`WORKER_IMAGE=…@sha256:…`). It never pushes to `main` directly.
+- **No rebuild loop (analysis F1):** `pilot/images.lock` is in `paths-ignore` and is the only
+  file the bot changes. The workflow's inputs (`pins.env`, `pilot/images/**`, `frame.py`) are
+  never bot-edited. Docker builds aren't byte-reproducible, so without this split every
+  digest merge would rebuild and open another PR. A branch and commit-marker guard adds
+  defence in depth.
 - **Registry is a matrix input** (`registry`, `namespace`, `variant`). It has one entry
   now, GHCR. 005 can add Quay or an OpenShift variant without redesign.
 - **Arbitrary UID:** home and work directories are group-0 owned and group-writable
@@ -82,7 +87,7 @@ happens in `kelos-review.md`, the first implementation checkpoint (R1).
   an OpenShift mirror viable. The default runtime UID stays fixed (10001/10002/10003)
   for kind.
 - **`pilot up`:**
-  - by default, pull-by-digest from `pins.env` (`images.py` `load_pinned()`);
+  - by default, pull-by-digest from `pilot/images.lock` (`images.py` `load_pinned()`);
   - `--local-build` keeps today's `build_all()` path (local registry) as an explicit
     fallback;
   - the kind node pulls public GHCR images directly, so no pull secret is needed;

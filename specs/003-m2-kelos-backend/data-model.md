@@ -2,14 +2,19 @@
 
 All entities are files.
 
-## Pilot image set (`pilot/pins.env` + workflow artifact `image-digests.json`)
+## Pilot image set (`pilot/pins.env` inputs, `pilot/images.lock` outputs, workflow artifact `image-digests.json`)
+
+- `pilot/pins.env`: **build inputs**, edited by people. Changes trigger the image workflow.
+- `pilot/images.lock`: **build outputs**, the three digests. Written only by the workflow's
+  PR; never a workflow trigger (no rebuild loop).
+
 
 | Key | Example / rule |
 |---|---|
-| `IMAGE_REGISTRY` | `ghcr.io/tosin2013` |
-| `WORKER_IMAGE` | `ghcr.io/tosin2013/specfoundry-pilot-worker@sha256:…` |
-| `TOOLS_IMAGE` | `ghcr.io/tosin2013/specfoundry-pilot-tools@sha256:…` |
-| `EGRESS_IMAGE` | `ghcr.io/tosin2013/specfoundry-pilot-egress@sha256:…` |
+| `IMAGE_REGISTRY` (lock) | `ghcr.io/tosin2013` |
+| `WORKER_IMAGE` (lock) | `ghcr.io/tosin2013/specfoundry-pilot-worker@sha256:…` |
+| `TOOLS_IMAGE` (lock) | `ghcr.io/tosin2013/specfoundry-pilot-tools@sha256:…` |
+| `EGRESS_IMAGE` (lock) | `ghcr.io/tosin2013/specfoundry-pilot-egress@sha256:…` |
 | `OPENCODE_RELEASE` | `anomalyco/opencode@v2.2.7` |
 | `OPENCODE_ASSET_SHA256` | sha256 of `opencode-linux-x64.tar.gz` (must also match the release's `SHA256SUMS`) |
 | `SPEC_SHA256` | already present (002); the tools build verifies against it |
@@ -19,8 +24,9 @@ Rule: every `*_IMAGE` matches `^[a-z0-9./-]+@sha256:[0-9a-f]{64}$`. `pilot up` r
 anything else unless `--local-build` is given.
 
 `image-digests.json` (workflow artifact):
-`{commit, built_at, registry, images: {worker, tools, egress}, inputs: {opencode:
-{release, asset, sha256}, spec: {sha256}, bases: {debian, alpine}}}`.
+`{commit, built_at, registry, images: {worker, tools, egress}, attestations: {worker:
+{provenance, sbom}, tools: {...}, egress: {...}}, inputs: {opencode: {release, asset,
+sha256}, spec: {sha256}, bases: {debian, alpine}}}`.
 
 ## Image source (in `run.json` and `versions.txt`)
 
