@@ -130,7 +130,7 @@ GitHub-built images (SC-002).
   - tools: `grade.py` on a tiny generated fixture bundle, expecting a frame;
   - egress: tinyproxy starts and listens within 5 s.
   The build fails if any one fails.
-- [ ] T024 [US2] Write `specs/003-m2-kelos-backend/evidence/enterprise.md`:
+- [X] T024 [US2] Write `specs/003-m2-kelos-backend/evidence/enterprise.md`:
   - the local results of the same three arbitrary-UID runs;
   - **a real worker job under an arbitrary UID (analysis C1):** run the GHCR worker image with `--user 1000123:0 --read-only` and the pod's tmpfs mounts, with the operator's OpenCode config dir mounted read-only at `/home/worker/.config/opencode` (never copied into the repo or evidence), on the A task prompt from 002's fixture. Then grade the resulting bundle with the GHCR tools image, also under `--user 1000123:0 --read-only --network none`. Expected: the frame decodes, and the grade passes G1–G5 (or fails only on G5 if the induced prompt is used). Record tokens used and the result, with no secrets;
   - a proxy check: the worker image with `HTTPS_PROXY` pointing at the egress image on a docker network, reaching an allowlisted host and being refused for others;
