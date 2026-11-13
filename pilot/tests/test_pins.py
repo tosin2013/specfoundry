@@ -67,3 +67,26 @@ class TestReadLock(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFeatureDir(unittest.TestCase):
+    def test_override_env(self):
+        with mock.patch.dict("os.environ", {"PILOT_EVIDENCE_FEATURE": "specs/002-m1-gated-pilot"}):
+            self.assertEqual(paths.feature_dir().name, "002-m1-gated-pilot")
+
+    def test_feature_json_used_when_valid(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            (root / ".specify").mkdir()
+            (root / "specs" / "009-x").mkdir(parents=True)
+            (root / ".specify" / "feature.json").write_text('{"feature_directory": "specs/009-x"}')
+            with mock.patch.object(paths, "ROOT", root), mock.patch.dict("os.environ", {}, clear=False):
+                import os
+                os.environ.pop("PILOT_EVIDENCE_FEATURE", None)
+                self.assertEqual(paths.feature_dir(), root / "specs" / "009-x")
+
+    def test_fallback_when_missing(self):
+        with tempfile.TemporaryDirectory() as t, mock.patch.object(paths, "ROOT", Path(t)):
+            import os
+            os.environ.pop("PILOT_EVIDENCE_FEATURE", None)
+            self.assertEqual(paths.feature_dir(), paths.DEFAULT_FEATURE_DIR)

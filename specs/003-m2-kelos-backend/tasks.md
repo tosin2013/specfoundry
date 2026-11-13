@@ -108,9 +108,9 @@ GitHub-built images (SC-002).
 - [X] T014 [US1] Add `--local-build` to `pilot up` in `pilot/specfoundry_pilot/cli.py`, and make `evidence.write_versions()` in `pilot/specfoundry_pilot/evidence.py` write `image_source:` plus the three image refs. The pipeline reads `image_source` from `images.json`.
 - [X] T015 [US1] Make `pilot up` fail closed when an image can't be pulled: after `infra.apply_all`, wait for the egress proxy rollouts and the control and stand-in pods (they use the tools and egress digests). On `ImagePullBackOff`/`ErrImagePull` within 180 s, exit 2 with the image ref in the message; don't fall back to a local build (spec edge case).
 - [X] T016 [US1] Commit Phase 1–3 changes on the feature branch, push it, open a PR, and confirm the `pull_request` workflow run builds all three images **without pushing** (SC-005). Record the run URL in `specs/003-m2-kelos-backend/evidence/ci.md`.
-- [ ] T017 [US1] After that PR is merged by the owner, confirm the `push` run publishes the three packages. Set the GHCR packages' visibility to **public** (package settings, a one-time owner action if the API can't). Confirm the bot's digest PR is opened and changes only `pilot/images.lock`; the owner merges it. Confirm that merge triggers **no** new `pilot-images` workflow run (F1). Record the package URLs, digests and the no-retrigger observation in `specs/003-m2-kelos-backend/evidence/ci.md`. Also confirm each pushed image has a provenance attestation and an SBOM (`docker buildx imagetools inspect <ref> --format '{{json .Provenance}}'` and `'{{json .SBOM}}'`), and record both in `evidence/ci.md` (D1).
+- [X] T017 [US1] After that PR is merged by the owner, confirm the `push` run publishes the three packages. Set the GHCR packages' visibility to **public** (package settings, a one-time owner action if the API can't). Confirm the bot's digest PR is opened and changes only `pilot/images.lock`; the owner merges it. Confirm that merge triggers **no** new `pilot-images` workflow run (F1). Record the package URLs, digests and the no-retrigger observation in `specs/003-m2-kelos-backend/evidence/ci.md`. Also confirm each pushed image has a provenance attestation and an SBOM (`docker buildx imagetools inspect <ref> --format '{{json .Provenance}}'` and `'{{json .SBOM}}'`), and record both in `evidence/ci.md` (D1).
 - [X] T018 [US1] Compare the upstream OpenCode binary's sha256 (from the built worker image) with the 002 host binary (`OPENCODE_SHA256`), and record "identical" or "differs" in `specs/003-m2-kelos-backend/research.md` R4.
-- [ ] T019 [US1] Run the validation pilot (quickstart.md §3–§4): `pilot up` (expect no registry container, Calico hash OK), the two negative checks (a wrong `CALICO_SHA256` in `pins.env`, a tag-only `WORKER_IMAGE` in `images.lock` → exit 2), then `reset-fixture`, `run`, merge, `resume`, `down`, `audit`. Commit `specs/003-m2-kelos-backend/evidence/<run-id>/` (expect audit 11/11, `image_source: pinned`).
+- [X] T019 [US1] Run the validation pilot (quickstart.md §3–§4): `pilot up` (expect no registry container, Calico hash OK), the two negative checks (a wrong `CALICO_SHA256` in `pins.env`, a tag-only `WORKER_IMAGE` in `images.lock` → exit 2), then `reset-fixture`, `run`, merge, `resume`, `down`, `audit`. Commit `specs/003-m2-kelos-backend/evidence/<run-id>/` (expect audit 11/11, `image_source: pinned`).
 
 **Checkpoint**: SC-001, SC-002, SC-004, SC-005 met.
 
@@ -130,7 +130,7 @@ GitHub-built images (SC-002).
   - tools: `grade.py` on a tiny generated fixture bundle, expecting a frame;
   - egress: tinyproxy starts and listens within 5 s.
   The build fails if any one fails.
-- [ ] T024 [US2] Write `specs/003-m2-kelos-backend/evidence/enterprise.md`:
+- [X] T024 [US2] Write `specs/003-m2-kelos-backend/evidence/enterprise.md`:
   - the local results of the same three arbitrary-UID runs;
   - **a real worker job under an arbitrary UID (analysis C1):** run the GHCR worker image with `--user 1000123:0 --read-only` and the pod's tmpfs mounts, with the operator's OpenCode config dir mounted read-only at `/home/worker/.config/opencode` (never copied into the repo or evidence), on the A task prompt from 002's fixture. Then grade the resulting bundle with the GHCR tools image, also under `--user 1000123:0 --read-only --network none`. Expected: the frame decodes, and the grade passes G1–G5 (or fails only on G5 if the induced prompt is used). Record tokens used and the result, with no secrets;
   - a proxy check: the worker image with `HTTPS_PROXY` pointing at the egress image on a docker network, reaching an allowlisted host and being refused for others;
@@ -168,7 +168,7 @@ GitHub-built images (SC-002).
 
 - [X] T029 [P] Update `docs/harnesses.md`: the worker image now comes from GHCR, built in GitHub from upstream OpenCode; the arbitrary-UID and proxy notes; the Kelos-compatible entrypoint. Name no private providers.
 - [X] T030 [P] Update `pilot/README.md`: `pilot up` pulls by digest (`--local-build` for development); where the images come from; the CI badge or workflow link.
-- [ ] T031 Update `specs/003-m2-kelos-backend/spec.md` with an **Evidence** section linking `evidence/ci.md`, `evidence/enterprise.md`, the validation run summary and `kelos-review.md`, and update the plan's Known risks with the outcomes.
+- [X] T031 Update `specs/003-m2-kelos-backend/spec.md` with an **Evidence** section linking `evidence/ci.md`, `evidence/enterprise.md`, the validation run summary and `kelos-review.md`, and update the plan's Known risks with the outcomes.
 - [ ] T032 Run `/speckit-roadmap-debrief` for 003. Then, with owner approval, `/speckit-roadmap-write`: record 003's status, link its spec dir, and add any approved gap items from the review as new entries. Don't edit the roadmap directly.
 
 ---

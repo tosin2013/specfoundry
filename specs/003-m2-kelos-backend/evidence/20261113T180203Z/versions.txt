@@ -1,0 +1,14 @@
+run_id: 20261113T180203Z
+kind: kind v0.27.0 go1.23.6 linux/amd64
+kubectl: Client Version: v1.32.2
+server: v1.32.2
+node_image: kindest/node:v1.32.2@sha256:f226345927d7e348497136874b6d207e0b32cc52154ad8323129352923a3142f
+calico: v3.29.3 sha256=9a575859428b822a224dedafc4238555b6b0f910f2abf12983f20f871860914e
+spec: spec 0.2.0 sha256=29420054ae9028b408526f35d057fa264f99923b87020eda243c4175b166c966
+opencode: 2.2.7 sha256=589253d36810f21217edd51545cd435b328cdc3cf4f451fbe0cce6f88afcf5e1
+registry_image: docker.io/library/registry:2@sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373
+image_source: pinned
+image_egress: ghcr.io/tosin2013/specfoundry-pilot-egress@sha256:db46773a79c3c41129364bdf0399b76717af1e99a339943c833aaa28759a452a
+image_tools: ghcr.io/tosin2013/specfoundry-pilot-tools@sha256:78c87dc4147a0e81525c3e821b274199a3a77489f6f04f34f0b1a6c4f97aa12b
+image_worker: ghcr.io/tosin2013/specfoundry-pilot-worker@sha256:bff0da27b9d34a68ca57d33068ae9d73b42d24993ee7ac42f63481a1df8fb3c6
+host: Linux 6.8.0-1067-ibm x86_64

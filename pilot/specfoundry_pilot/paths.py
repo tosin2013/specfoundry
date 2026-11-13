@@ -10,7 +10,28 @@ MANIFESTS = PILOT / "manifests"
 IMAGES = PILOT / "images"
 PINS = PILOT / "pins.env"
 IMAGES_LOCK = PILOT / "images.lock"
-FEATURE_DIR = ROOT / "specs" / "002-m1-gated-pilot"
+DEFAULT_FEATURE_DIR = ROOT / "specs" / "002-m1-gated-pilot"
+
+
+def feature_dir() -> Path:
+    """Evidence goes to the active Spec Kit feature (`.specify/feature.json`, set by
+    /speckit-specify), else to 002's folder. `PILOT_EVIDENCE_FEATURE` (a specs/ path) overrides."""
+    import json
+    import os
+    override = os.environ.get("PILOT_EVIDENCE_FEATURE")
+    if override:
+        return (ROOT / override).resolve()
+    fj = ROOT / ".specify" / "feature.json"
+    try:
+        d = ROOT / json.loads(fj.read_text())["feature_directory"]
+        if d.is_dir():
+            return d
+    except (OSError, ValueError, KeyError):
+        pass
+    return DEFAULT_FEATURE_DIR
+
+
+FEATURE_DIR = feature_dir()
 EVIDENCE_ROOT = FEATURE_DIR / "evidence"
 UP_OK = BUILD / "up.ok"
 IMAGES_JSON = BUILD / "images.json"

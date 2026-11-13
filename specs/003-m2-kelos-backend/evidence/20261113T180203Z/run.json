@@ -1,0 +1,144 @@
+{
+  "created": "2026-11-13T18:02:03Z",
+  "event_seq": 37,
+  "fixture_base": "719f7afe4aac826934f5817d8db8fd251fef6a41",
+  "gate_seq": 5,
+  "mode": {
+    "name": "step-by-step",
+    "retry_limit": 2,
+    "spend_cap_usd": 1.0,
+    "token_cap": 2000000,
+    "worker_deadline_s": 1200
+  },
+  "paused_at": "2026-11-13T18:07:41Z",
+  "pending": {
+    "task": "A"
+  },
+  "reason": null,
+  "run_id": "20261113T180203Z",
+  "state": "succeeded",
+  "tasks": {
+    "A": {
+      "attempts": [
+        {
+          "base_revision": "719f7afe4aac826934f5817d8db8fd251fef6a41",
+          "changed_paths": [
+            "specs/001-slugify/tasks.md",
+            "src/slugkit/__init__.py",
+            "src/slugkit/slug.py",
+            "tests/test_slug.py"
+          ],
+          "harness_exit": 0,
+          "image": "ghcr.io/tosin2013/specfoundry-pilot-worker@sha256:bff0da27b9d34a68ca57d33068ae9d73b42d24993ee7ac42f63481a1df8fb3c6",
+          "induction": "withheld-acceptance-section",
+          "n": 1,
+          "namespace": "pilot-w-a-1",
+          "reason": "grade_fail",
+          "result": "fail",
+          "spend": {
+            "cap_mode": "token-fallback",
+            "cap_usd": 1.0,
+            "cost_usd": 0.0,
+            "stopped_by_cap": false,
+            "token_cap": 2000000,
+            "tokens": 239363
+          },
+          "state": "failed"
+        },
+        {
+          "base_revision": "719f7afe4aac826934f5817d8db8fd251fef6a41",
+          "changed_paths": [
+            "specs/001-slugify/tasks.md",
+            "src/slugkit/__init__.py",
+            "src/slugkit/slug.py",
+            "tests/test_slug.py"
+          ],
+          "harness_exit": 0,
+          "image": "ghcr.io/tosin2013/specfoundry-pilot-worker@sha256:bff0da27b9d34a68ca57d33068ae9d73b42d24993ee7ac42f63481a1df8fb3c6",
+          "induction": null,
+          "n": 2,
+          "namespace": "pilot-w-a-2",
+          "reason": null,
+          "result": "pass",
+          "spend": {
+            "cap_mode": "token-fallback",
+            "cap_usd": 1.0,
+            "cost_usd": 0.0,
+            "stopped_by_cap": false,
+            "token_cap": 2000000,
+            "tokens": 477495
+          },
+          "state": "passed"
+        }
+      ],
+      "base_revision": "719f7afe4aac826934f5817d8db8fd251fef6a41",
+      "gate_seqs": [
+        1
+      ],
+      "passing_attempt": 2,
+      "pr": {
+        "attempt": 2,
+        "author": "tosin2013",
+        "created": true,
+        "draft": true,
+        "head": "pilot/20261113T180203Z/a",
+        "number": 3,
+        "operator_login": "tosin2013",
+        "publisher_identity": "tosin2013",
+        "task": "A",
+        "url": "https://github.com/tosin2013/craz3-pilot-fixture/pull/3"
+      },
+      "state": "verified"
+    },
+    "B": {
+      "attempts": [
+        {
+          "base_revision": "aa38d3fc0b254e1a3bd805773708369bb1e847b1",
+          "changed_paths": [
+            "specs/002-unique-slug/tasks.md",
+            "src/slugkit/__init__.py",
+            "src/slugkit/unique.py",
+            "tests/test_unique.py"
+          ],
+          "harness_exit": 0,
+          "image": "ghcr.io/tosin2013/specfoundry-pilot-worker@sha256:bff0da27b9d34a68ca57d33068ae9d73b42d24993ee7ac42f63481a1df8fb3c6",
+          "induction": null,
+          "n": 1,
+          "namespace": "pilot-w-b-1",
+          "reason": null,
+          "result": "pass",
+          "spend": {
+            "cap_mode": "token-fallback",
+            "cap_usd": 1.0,
+            "cost_usd": 0.0,
+            "stopped_by_cap": false,
+            "token_cap": 2000000,
+            "tokens": 225354
+          },
+          "state": "passed"
+        }
+      ],
+      "base_revision": "aa38d3fc0b254e1a3bd805773708369bb1e847b1",
+      "gate_seqs": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "passing_attempt": 1,
+      "pr": {
+        "attempt": 1,
+        "author": "tosin2013",
+        "created": true,
+        "draft": true,
+        "head": "pilot/20261113T180203Z/b",
+        "number": 4,
+        "operator_login": "tosin2013",
+        "publisher_identity": "tosin2013",
+        "task": "B",
+        "url": "https://github.com/tosin2013/craz3-pilot-fixture/pull/4"
+      },
+      "state": "published"
+    }
+  }
+}

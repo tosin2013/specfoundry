@@ -1,0 +1,39 @@
+{
+  "container_terminated": {
+    "containerID": "containerd://fc9a59f9174ac6b50b6a5cd5e9250d6df6102f5607ba24f7cb452b66a1648706",
+    "exitCode": 0,
+    "finishedAt": "2026-11-13T18:03:26Z",
+    "reason": "Completed",
+    "startedAt": "2026-11-13T18:02:12Z"
+  },
+  "job_status": {
+    "completionTime": "2026-11-13T18:03:29Z",
+    "conditions": [
+      {
+        "lastProbeTime": "2026-11-13T18:03:29Z",
+        "lastTransitionTime": "2026-11-13T18:03:29Z",
+        "message": "Reached expected number of succeeded pods",
+        "reason": "CompletionsReached",
+        "status": "True",
+        "type": "SuccessCriteriaMet"
+      },
+      {
+        "lastProbeTime": "2026-11-13T18:03:29Z",
+        "lastTransitionTime": "2026-11-13T18:03:29Z",
+        "message": "Reached expected number of succeeded pods",
+        "reason": "CompletionsReached",
+        "status": "True",
+        "type": "Complete"
+      }
+    ],
+    "ready": 0,
+    "startTime": "2026-11-13T18:02:06Z",
+    "succeeded": 1,
+    "terminating": 0,
+    "uncountedTerminatedPods": {}
+  },
+  "outcome": "Complete",
+  "pod": "worker-qxdvs",
+  "pod_phase": "Succeeded",
+  "pod_reason": null
+}
