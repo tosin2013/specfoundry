@@ -1,0 +1,26 @@
+# Docs check (spec 006, contracts/docs-check.md): commands, repo paths, pinned versions and
+# token-like strings in the operator docs. No secrets; read-only.
+name: docs-check
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "README.md"
+      - "pilot/**"
+      - ".github/workflows/docs-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Unit tests for the docs check
+        run: PYTHONPATH=pilot python3 -m unittest pilot.tests.test_docs_check -v
+      - name: Check the docs
+        run: python3 pilot/tools/docs_check.py

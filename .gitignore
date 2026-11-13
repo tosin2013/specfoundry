@@ -14,3 +14,4 @@ pilot/.build/
 !pilot/pins.env
 .DS_Store
 *.swp
+pilot/runs/

@@ -14,6 +14,7 @@ It proves that **no worker starts on a blocked item**. A's first attempt is made
 purpose, B stays blocked through the failure and the retry, and B runs only after A is
 verified.
 
+- **Operators:** follow the [operator guide](../docs/operator-guide.md) ([troubleshooting](../docs/troubleshooting.md))
 - Spec, plan and contracts: [`specs/002-m1-gated-pilot/`](../specs/002-m1-gated-pilot/)
 - Step-by-step validation: [quickstart.md](../specs/002-m1-gated-pilot/quickstart.md)
 - Harness and provider configuration: [docs/harnesses.md](../docs/harnesses.md)

@@ -62,14 +62,16 @@ roadmap.md ──► gate (spec status, fail closed) ──► mode confirmed by
 
 ## Try the pilot
 
-The pilot runs a two-task fixture project (B depends on A) through the full lifecycle. You
-will need:
-- Linux (tested on Ubuntu; macOS untested) with Docker and about 8 GB free RAM, Python 3.12, git, and the
-  [GitHub CLI](https://cli.github.com/) (`gh`) logged in;
-- [`spec`](https://github.com/tosin2013/spec-status) 0.2.0 on your `PATH`;
-- an empty GitHub repository named `<anything>-pilot-fixture`, plus a fine-grained token
-  scoped to it (Contents and Pull requests: read and write);
-- an OpenCode model provider (see [docs/harnesses.md](docs/harnesses.md)).
+The pilot runs a two-task fixture project (B depends on A) through the full lifecycle on a
+local kind cluster: gate, isolated worker, independent grader, draft PR, your merge, approval,
+then B. It takes about an hour on Ubuntu 24.04 (amd64) with Docker, a GitHub account and an
+OpenAI-compatible model provider.
+
+**Start here: [the operator guide](docs/operator-guide.md)**, which goes from a fresh
+machine to an audited run, explaining every prompt. If something fails, see
+[troubleshooting](docs/troubleshooting.md).
+
+In short:
 
 ```sh
 pilot/pilot publisher-token      # store and check the repo-scoped token (hidden prompt)
@@ -81,8 +83,7 @@ pilot/pilot resume               # approve "A verified"; B runs; PR for B; audit
 pilot/pilot down && pilot/pilot audit
 ```
 
-Full walkthrough: [specs/002-m1-gated-pilot/quickstart.md](specs/002-m1-gated-pilot/quickstart.md) ·
-pilot reference: [pilot/README.md](pilot/README.md) · configuration contract:
+Pilot reference: [pilot/README.md](pilot/README.md) · configuration contract:
 [contracts/config.md](specs/002-m1-gated-pilot/contracts/config.md).
 
 ## How it's built

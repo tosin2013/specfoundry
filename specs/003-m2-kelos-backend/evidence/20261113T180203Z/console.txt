@@ -1,0 +1,67 @@
+# Console transcript of run 20261113T180203Z (operator terminal, as pasted by the owner on
+# 2026-11-13). Added 2026-11-13 for spec 006 (analysis M1) so the operator guide's quoted output
+# is checkable. No secrets; output verbatim.
+
+$ ./pilot/pilot run
+== run 20261113T180203Z
+  PASS GM01  FR-002   gate unit matrix (all refusal cases refuse)
+  PASS GM02  FR-002   missing roadmap refuses
+  PASS GM03  FR-002   status tool error refuses
+  PASS GM04  FR-002   truncated roadmap refuses B
+  gate A: allow ['OK']
+  gate B: refuse ['DEP_UNSATISFIED:001']
+Run mode for this pilot: {"name": "step-by-step", "retry_limit": 2, "spend_cap_usd": 1.0, "token_cap": 2000000, "worker_deadline_s": 1200}
+  one attempt at a time; every retry needs your confirmation; risk rating is out of scope in M1.
+Confirm this mode and start staging workers? [y/N] y
+  PASS P01   FR-005   worker namespace has exactly 1 pod with 1 container
+  PASS P02   FR-006   SA and pod automount off; no token file
+  PASS P03   FR-006   default-deny netpol, quota pods=1 secrets=1, Job deadline
+  PASS P04   FR-007   only Secret is model-key; no SCM-like secret keys or env names
+  PASS P05   FR-007   no grading material in the worker namespace
+  PASS P06   FR-009b  model host via proxy reachable; github.com via proxy and direct internet blocked; control reaches github.com
+  PASS P07   FR-010   worker-policy pod cannot reach the grader stand-in; control can
+  PASS P08   FR-010   worker SA cannot create/patch/exec in its grader namespace
+  gate B: refuse ['DEP_UNSATISFIED:001']
+Retry A (attempt 2 of 3)? [y/N] y
+  PASS P01   FR-005   worker namespace has exactly 1 pod with 1 container
+  PASS P02   FR-006   SA and pod automount off; no token file
+  PASS P03   FR-006   default-deny netpol, quota pods=1 secrets=1, Job deadline
+  PASS P04   FR-007   only Secret is model-key; no SCM-like secret keys or env names
+  PASS P05   FR-007   no grading material in the worker namespace
+  PASS P06   FR-009b  model host via proxy reachable; github.com via proxy and direct internet blocked; control reaches github.com
+  PASS P07   FR-010   worker-policy pod cannot reach the grader stand-in; control can
+  PASS P08   FR-010   worker SA cannot create/patch/exec in its grader namespace
+  PASS P09   FR-013   only pilot-publish holds an SCM credential
+  PASS P10   S6       pilot pods digest-pinned, non-root, no privilege escalation
+  gate B: refuse ['DEP_UNSATISFIED:001']
+
+Task A draft PR: https://github.com/tosin2013/craz3-pilot-fixture/pull/3
+Review and merge it on GitHub yourself, then run: pilot/pilot resume
+
+$ ./pilot/pilot resume
+Reconcile proposal for task A (item 001), PR #3 merged (393bc5696afa820425cac2ba0478568780293438), tasks 100%, graded tree matches:
+- ### 001 — Slug function  [status: planned]
++ ### 001 — Slug function  [status: verified]
+Apply '001: planned → verified' to the fixture roadmap? [y/N] y
+  gate B: allow ['OK']
+  PASS P01   FR-005   worker namespace has exactly 1 pod with 1 container
+  PASS P02   FR-006   SA and pod automount off; no token file
+  PASS P03   FR-006   default-deny netpol, quota pods=1 secrets=1, Job deadline
+  PASS P04   FR-007   only Secret is model-key; no SCM-like secret keys or env names
+  PASS P05   FR-007   no grading material in the worker namespace
+  PASS P06   FR-009b  model host via proxy reachable; github.com via proxy and direct internet blocked; control reaches github.com
+  PASS P07   FR-010   worker-policy pod cannot reach the grader stand-in; control can
+  PASS P08   FR-010   worker SA cannot create/patch/exec in its grader namespace
+  PASS P09   FR-013   only pilot-publish holds an SCM credential
+  PASS P10   S6       pilot pods digest-pinned, non-root, no privilege escalation
+  PASS AU01 B refused (and never attempted) until A verified (SC-001)
+  PASS AU02 order A/1 fail -> A/2+ pass -> B pass (SC-002)
+  PASS AU03 exactly 2 draft PRs, both by the publisher identity (SC-003)
+  PASS AU04 no worker/grader held an SCM credential (P04, P09) (SC-004)
+  PASS AU05 gate fail-closed matrix passed (SC-005)
+  PASS AU06 every attempt within its spend cap (SC-008)
+  PASS AU08 no secrets in the evidence record
+  PASS AU09 every retry confirmed by the operator (FR-017)
+  PASS AU10 mode confirmed before any worker staged (FR-023)
+  PASS AU11 induction applied to A/1 only, withholding exactly the acceptance section
+run 20261113T180203Z succeeded. Evidence: specs/003-m2-kelos-backend/evidence/20261113T180203Z
