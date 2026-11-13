@@ -1,0 +1,3 @@
+{"description": "kind cluster deleted", "detail": "absent", "id": "T01", "requirement": "N3", "result": "pass"}
+{"description": "no kind node containers remain", "detail": "containers=0", "id": "T02", "requirement": "N3", "result": "pass"}
+{"description": "local registry container removed", "detail": "containers=0", "id": "T03", "requirement": "N3", "result": "pass"}

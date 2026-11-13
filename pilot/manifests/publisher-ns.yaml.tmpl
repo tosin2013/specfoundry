@@ -1,0 +1,47 @@
+# The only namespace that holds an SCM credential (FR-013). Created by `pilot up`.
+apiVersion: v1
+kind: Namespace
+metadata: {name: pilot-publish, labels: {specfoundry.io/role: publisher}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: publisher, namespace: pilot-publish}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: publisher-quota, namespace: pilot-publish}
+spec:
+  hard: {pods: "1", count/secrets: "1", count/configmaps: "3", limits.cpu: "1", limits.memory: 512Mi}
+---
+apiVersion: v1
+kind: LimitRange
+metadata: {name: publisher-limits, namespace: pilot-publish}
+spec:
+  limits:
+    - type: Container
+      default: {cpu: 500m, memory: 256Mi}
+      defaultRequest: {cpu: 100m, memory: 64Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny-all, namespace: pilot-publish}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-egress-dns-and-scm-proxy, namespace: pilot-publish}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+          podSelector: {matchLabels: {k8s-app: kube-dns}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pilot-egress-scm}}
+          podSelector: {matchLabels: {app: proxy}}
+      ports: [{protocol: TCP, port: 8888}]

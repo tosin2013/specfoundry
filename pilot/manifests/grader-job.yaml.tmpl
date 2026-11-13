@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata: {name: grader, namespace: ${NS}}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 300
+  template:
+    metadata: {labels: {app: grader}}
+    spec:
+      serviceAccountName: grader
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      restartPolicy: Never
+      securityContext: {runAsNonRoot: true, runAsUser: 10002, runAsGroup: 10002, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: grader
+          image: ${TOOLS_IMAGE}
+          command: [python3, /usr/local/lib/pilot/grade.py]
+          env: [{name: GRADER_IMAGE, value: "${TOOLS_IMAGE}"}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts:
+            - {name: submission, mountPath: /in, readOnly: true}
+            - {name: grading, mountPath: /grading, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: submission, configMap: {name: submission}}
+        - {name: grading, configMap: {name: grading}}
+        - {name: tmp, emptyDir: {sizeLimit: 256Mi}}

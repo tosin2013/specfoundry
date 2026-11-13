@@ -1,0 +1,5 @@
+{"at": "2026-11-13T03:04:52Z", "attempt": null, "detail": "tosin2013/craz3-pilot-fixture", "event": "run_started", "seq": 1, "stage": "run", "task": null}
+{"at": "2026-11-13T03:04:52Z", "attempt": null, "detail": "seq=1 OK", "event": "gate_allow", "seq": 2, "stage": "gate", "task": "A"}
+{"at": "2026-11-13T03:04:52Z", "attempt": null, "detail": "seq=2 DEP_UNSATISFIED:001", "event": "gate_refuse", "seq": 3, "stage": "gate", "task": "B"}
+{"at": "2026-11-13T03:04:52Z", "attempt": null, "detail": "{\"name\": \"step-by-step\", \"retry_limit\": 2, \"spend_cap_usd\": 1.0, \"token_cap\": 2000000, \"worker_deadline_s\": 1200}", "event": "mode_declined", "seq": 4, "stage": "mode", "task": null}
+{"at": "2026-11-13T03:04:52Z", "attempt": null, "detail": "MODE_NOT_CONFIRMED", "event": "run_failed", "seq": 5, "stage": "run", "task": null}

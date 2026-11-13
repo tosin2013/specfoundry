@@ -1,0 +1,17 @@
+{
+  "allowed_paths": [
+    "src/slugkit/*",
+    "tests/*",
+    "specs/001-slugify/tasks.md"
+  ],
+  "attempt": 1,
+  "base_revision": "0eaa3d7bded9c01242c5fa5be39a7eb35bf10f09",
+  "induction": {
+    "heading": "## Acceptance details",
+    "name": "withheld-acceptance-section",
+    "spec_path": "specs/001-slugify/spec.md"
+  },
+  "item_id": "001",
+  "run_id": "20261113T030655Z",
+  "task": "A"
+}

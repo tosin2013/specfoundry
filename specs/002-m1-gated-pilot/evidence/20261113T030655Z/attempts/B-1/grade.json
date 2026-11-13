@@ -1,0 +1,36 @@
+{
+  "attempt": 1,
+  "checks": [
+    {
+      "detail": "Note: switching to '549f751854f8297769c3f544dc699e11e6cf4a55'.\n\nYou are in 'detached HEAD' state. You can look around, make experimental\nchanges and commit them, and you can discard any commits you make in this\nstate without impacting any branches by switching back to a branch.\n\nIf you want to create a new branch to retain commits you create, you may\ndo so (now or later) by using -c with the switch command. Example:\n\n  git switch -c <new-branch-name>\n\nOr undo this operation with:\n\n  git switch -\n\nTurn off this advice by setting config variable advice.detachedHead to false\n\n | The bundle contains this ref:\n04cb2cd8d06e42ad7f9d543068c93aded1fa58c5 HEAD\nThe bundle requires this ref:\n549f751854f8297769c3f544dc699e11e6cf4a55 \nThe bundle uses this hash algorithm: sha1\n/in/change.bundle is okay\n",
+      "id": "G1_bundle_applies",
+      "result": "pass"
+    },
+    {
+      "detail": "changed=['specs/002-unique-slug/tasks.md', 'src/slugkit/__init__.py', 'src/slugkit/unique.py', 'tests/test_unique.py'] disallowed=[]",
+      "id": "G2_allowed_paths",
+      "result": "pass"
+    },
+    {
+      "detail": "tasks percent=100",
+      "id": "G3_tasks_checked",
+      "result": "pass"
+    },
+    {
+      "detail": ".........................................                                [100%]\n41 passed in 0.06s\n",
+      "id": "G4_visible_tests",
+      "result": "pass"
+    },
+    {
+      "detail": "......                                                                   [100%]\n6 passed in 0.01s\n",
+      "id": "G5_hidden_tests",
+      "result": "pass"
+    }
+  ],
+  "failure": null,
+  "grader_image": "localhost:5001/pilot-tools@sha256:7aa4b9b4d74ae0727879b6f7b91e24c46f7660a7f032cad684ec1055685724d7",
+  "result": "pass",
+  "run_id": "20261113T030655Z",
+  "task": "B",
+  "version": 1
+}

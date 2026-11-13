@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "specfoundry/pilot/grade-report/v1",
+  "title": "Grade report (one per attempt)",
+  "type": "object",
+  "required": ["version", "run_id", "task", "attempt", "result", "checks", "grader_image"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"const": 1},
+    "run_id": {"type": "string"},
+    "task": {"enum": ["A", "B"]},
+    "attempt": {"type": "integer", "minimum": 1, "maximum": 3},
+    "result": {"enum": ["pass", "fail"]},
+    "failure": {
+      "type": ["string", "null"],
+      "description": "Set by the orchestrator when no valid report came back: grader_error | grader_timeout | bad_frame | no_result"
+    },
+    "grader_image": {"type": "string", "pattern": "@sha256:[0-9a-f]{64}$"},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "result"],
+        "properties": {
+          "id": {"enum": ["G1_bundle_applies", "G2_allowed_paths", "G3_tasks_checked", "G4_visible_tests", "G5_hidden_tests"]},
+          "result": {"enum": ["pass", "fail", "skipped"]},
+          "detail": {"type": "string", "maxLength": 4096}
+        }
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"result": {"const": "pass"}}},
+     "then": {"properties": {"checks": {"minItems": 5, "items": {"properties": {"result": {"const": "pass"}}}}}}}
+  ]
+}

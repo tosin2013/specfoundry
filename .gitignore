@@ -5,3 +5,12 @@
 *.pem
 *.key
 kubeconfig*
+# Python / pilot build output
+__pycache__/
+*.pyc
+.venv/
+pilot/.build/
+*.env
+!pilot/pins.env
+.DS_Store
+*.swp

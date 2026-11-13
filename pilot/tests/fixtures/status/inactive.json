@@ -1,0 +1,123 @@
+{
+ "complete": true,
+ "configuration": {
+  "dependency_policy": "verified",
+  "fail_on": "error",
+  "task_scope": "unique_linked_task_files"
+ },
+ "diagnostics": [
+  {
+   "code": "SS_DEPENDENCY_BLOCKED",
+   "item_id": "002",
+   "message": "Dependency is not recorded verified.",
+   "related": [],
+   "severity": "warning",
+   "source": {
+    "line": 28,
+    "path": ".specify/memory/roadmap.md"
+   }
+  }
+ ],
+ "error": null,
+ "items": [
+  {
+   "active": false,
+   "dependencies": [],
+   "description": "A `slugify` function for short, URL-safe identifiers.",
+   "id": "001",
+   "outcome": "`slugify(text)` meets every rule in its spec, including the acceptance details.",
+   "scope": "`src/slugkit/slug.py`, its tests, and this spec's tasks.",
+   "source": {
+    "line": 13,
+    "path": ".specify/memory/roadmap.md"
+   },
+   "spec_dir": "specs/001-slugify",
+   "status": "planned",
+   "status_known": true,
+   "superseded_by": null,
+   "supersession": {
+    "raw_reference": null,
+    "supplied": false,
+    "terminal_id": null,
+    "valid": null
+   },
+   "tasks": {
+    "checked": 0,
+    "percent": 0,
+    "source": "specs/001-slugify/tasks.md",
+    "state": "read",
+    "total": 3
+   },
+   "title": "Slug function"
+  },
+  {
+   "active": true,
+   "dependencies": [
+    {
+     "id": "001",
+     "replacement_id": null,
+     "satisfied": false,
+     "source": {
+      "line": 28,
+      "path": ".specify/memory/roadmap.md"
+     },
+     "state": "unfinished"
+    }
+   ],
+   "description": "A `unique_slug` function that avoids collisions with existing slugs.",
+   "id": "002",
+   "outcome": "`unique_slug(text, existing)` returns a slug not in `existing`, built on `slugify`.",
+   "scope": "`src/slugkit/unique.py`, its tests, and this spec's tasks.",
+   "source": {
+    "line": 22,
+    "path": ".specify/memory/roadmap.md"
+   },
+   "spec_dir": "specs/002-unique-slug",
+   "status": "planned",
+   "status_known": true,
+   "superseded_by": null,
+   "supersession": {
+    "raw_reference": null,
+    "supplied": false,
+    "terminal_id": null,
+    "valid": null
+   },
+   "tasks": {
+    "checked": 0,
+    "percent": 0,
+    "source": "specs/002-unique-slug/tasks.md",
+    "state": "read",
+    "total": 3
+   },
+   "title": "Unique slugs"
+  }
+ ],
+ "outcome": "report",
+ "schema_version": "1.0",
+ "source": {
+  "input_format": "speckit-roadmap-v0.1.1+spec-status-supersession-draft",
+  "roadmap": ".specify/memory/roadmap.md"
+ },
+ "summary": {
+  "active_items": 2,
+  "blocked_count": 1,
+  "human_review_count": 0,
+  "invalid_supersession_items": 0,
+  "status_counts": {
+   "planned": 2
+  },
+  "superseded_items": 0,
+  "tasks": {
+   "checked": 0,
+   "files_missing": 0,
+   "files_read": 2,
+   "files_skipped": 0,
+   "percent": 0,
+   "scope": "unique_linked_task_files",
+   "total": 6
+  },
+  "total_items": 2,
+  "verified_active_items": 0,
+  "verified_percent": 0
+ }
+}

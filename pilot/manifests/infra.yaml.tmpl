@@ -1,0 +1,43 @@
+# Long-lived check helpers created by `pilot up` (as 001's control namespace):
+#   pilot-control         unrestricted probe: proves "blocked" results come from policy
+#   pilot-grader-standin  HTTP target standing in for grader namespaces in P07
+apiVersion: v1
+kind: Namespace
+metadata: {name: pilot-control, labels: {specfoundry.io/role: control}}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: control, namespace: pilot-control, labels: {app: control}}
+spec:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext: {runAsNonRoot: true, runAsUser: 10002, seccompProfile: {type: RuntimeDefault}}
+  containers:
+    - name: control
+      image: ${TOOLS_IMAGE}
+      command: [sleep, infinity]
+      securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: pilot-grader-standin, labels: {specfoundry.io/role: grader-standin}}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: target, namespace: pilot-grader-standin, labels: {app: target}}
+spec:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext: {runAsNonRoot: true, runAsUser: 10002, seccompProfile: {type: RuntimeDefault}}
+  containers:
+    - name: target
+      image: ${TOOLS_IMAGE}
+      command: [python3, -m, http.server, "8080", --directory, /usr/local/lib/pilot]
+      securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: target, namespace: pilot-grader-standin}
+spec:
+  selector: {app: target}
+  ports: [{port: 8080, targetPort: 8080}]

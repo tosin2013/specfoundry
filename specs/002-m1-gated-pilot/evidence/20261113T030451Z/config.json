@@ -1,0 +1,23 @@
+{
+  "pilot_env": {
+    "PILOT_FIXTURE_BRANCH": "main",
+    "PILOT_FIXTURE_REPO": "tosin2013/craz3-pilot-fixture",
+    "PILOT_MODEL": "litellm/claude-sonnet-4-6",
+    "PILOT_MODEL_EGRESS_HOSTS": "sha256:f7255209538f063d",
+    "PILOT_PROVIDER_CAP_DECLARED": "false",
+    "PILOT_SPEND_CAP_USD": "1.00",
+    "PILOT_TOKEN_CAP": "2000000",
+    "RETRY_LIMIT": "2"
+  },
+  "secret_files": {
+    "opencode/litellm_api_key": {
+      "sha256": "65c563b434e7d92469e2faa5580ef16a37bf3e670ff79910932ea14285b1402a"
+    },
+    "opencode/opencode.json": {
+      "sha256": "43206b7db591188f8937a85ebcf907fa893f9945cca75668ae7262f9e2b3e648"
+    },
+    "publisher.env": {
+      "sha256": "5e6d0e8e7a38088e1b020656e5b3375c7dcf89aeef70094ae8abc69fbfbc5aff"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+# One worker attempt's namespace (FR-005, FR-006). Also used for the probe twin (same policies).
+apiVersion: v1
+kind: Namespace
+metadata: {name: ${NS}, labels: {specfoundry.io/role: worker, specfoundry.io/run: "${RUN_ID}"}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: worker, namespace: ${NS}}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: worker-quota, namespace: ${NS}}
+spec:
+  hard:
+    pods: "1"
+    count/secrets: "1"
+    count/configmaps: "2"
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+---
+apiVersion: v1
+kind: LimitRange
+metadata: {name: worker-limits, namespace: ${NS}}
+spec:
+  limits:
+    - type: Container
+      default: {cpu: 500m, memory: 256Mi}
+      defaultRequest: {cpu: 100m, memory: 64Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny-all, namespace: ${NS}}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-egress-dns-and-model-proxy, namespace: ${NS}}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+          podSelector: {matchLabels: {k8s-app: kube-dns}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pilot-egress-model}}
+          podSelector: {matchLabels: {app: proxy}}
+      ports: [{protocol: TCP, port: 8888}]

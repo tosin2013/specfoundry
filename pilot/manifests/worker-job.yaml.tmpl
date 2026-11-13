@@ -1,0 +1,44 @@
+# The worker Job for one attempt (contracts/worker-io.md).
+apiVersion: batch/v1
+kind: Job
+metadata: {name: worker, namespace: ${NS}}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: ${DEADLINE}
+  template:
+    metadata: {labels: {app: worker}}
+    spec:
+      serviceAccountName: worker
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: worker
+          image: ${WORKER_IMAGE}
+          env:
+            - {name: PILOT_MODEL, value: "${PILOT_MODEL}"}
+            - {name: PILOT_SPEND_CAP_USD, value: "${SPEND_CAP}"}
+            - {name: PILOT_TOKEN_CAP, value: "${TOKEN_CAP}"}
+            - {name: HTTPS_PROXY, value: "http://proxy.pilot-egress-model.svc.cluster.local:8888"}
+            - {name: https_proxy, value: "http://proxy.pilot-egress-model.svc.cluster.local:8888"}
+            - {name: NO_PROXY, value: ""}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 500m, memory: 512Mi}, limits: {cpu: "2", memory: 2Gi}}
+          volumeMounts:
+            - {name: inputs, mountPath: /in, readOnly: true}
+            - {name: work, mountPath: /work}
+            - {name: home, mountPath: /home/worker}
+            - {name: model-key, mountPath: /home/worker/.config/opencode, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: inputs, configMap: {name: inputs}}
+        - {name: work, emptyDir: {sizeLimit: 512Mi}}
+        - {name: home, emptyDir: {sizeLimit: 256Mi}}
+        - {name: model-key, secret: {secretName: model-key, defaultMode: 0440}}
+        - {name: tmp, emptyDir: {sizeLimit: 256Mi}}

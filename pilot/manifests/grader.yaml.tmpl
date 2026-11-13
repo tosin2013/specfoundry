@@ -1,0 +1,31 @@
+# One grader namespace per attempt (FR-010, R7): no secrets, no egress at all.
+apiVersion: v1
+kind: Namespace
+metadata: {name: ${NS}, labels: {specfoundry.io/role: grader, specfoundry.io/run: "${RUN_ID}"}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: grader, namespace: ${NS}}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: grader-quota, namespace: ${NS}}
+spec:
+  hard: {pods: "1", count/secrets: "0", count/configmaps: "3", limits.cpu: "2", limits.memory: 1Gi}
+---
+apiVersion: v1
+kind: LimitRange
+metadata: {name: grader-limits, namespace: ${NS}}
+spec:
+  limits:
+    - type: Container
+      default: {cpu: "1", memory: 512Mi}
+      defaultRequest: {cpu: 100m, memory: 128Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny-all, namespace: ${NS}}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]

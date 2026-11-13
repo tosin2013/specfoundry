@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# specfoundry M1 pilot CLI. See specs/002-m1-gated-pilot/contracts/cli.md
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+export PYTHONPATH="$ROOT/pilot${PYTHONPATH:+:$PYTHONPATH}"
+export PATH="$HOME/.local/bin:$PATH"
+exec python3 -m specfoundry_pilot "$@"

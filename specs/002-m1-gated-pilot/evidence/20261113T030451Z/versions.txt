@@ -1,0 +1,13 @@
+run_id: 20261113T030451Z
+kind: kind v0.27.0 go1.23.6 linux/amd64
+kubectl: Client Version: v1.32.2
+server: v1.32.2
+node_image: kindest/node:v1.32.2@sha256:f226345927d7e348497136874b6d207e0b32cc52154ad8323129352923a3142f
+calico: v3.29.3 sha256=9a575859428b822a224dedafc4238555b6b0f910f2abf12983f20f871860914e
+spec: spec 0.2.0 sha256=29420054ae9028b408526f35d057fa264f99923b87020eda243c4175b166c966
+opencode: 2.2.7 sha256=589253d36810f21217edd51545cd435b328cdc3cf4f451fbe0cce6f88afcf5e1
+registry_image: docker.io/library/registry:2@sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373
+image_egress: localhost:5001/pilot-egress@sha256:380c7347b3a23006d7d2d832799c4ceb250ca8e2211a17605dc2a7c1977d55ff
+image_tools: localhost:5001/pilot-tools@sha256:7aa4b9b4d74ae0727879b6f7b91e24c46f7660a7f032cad684ec1055685724d7
+image_worker: localhost:5001/pilot-worker@sha256:934fd396efb8de8b45ffdcb57d00796033e7b37506080ea91ab68821ac1b8af3
+host: Linux 6.8.0-1067-ibm x86_64

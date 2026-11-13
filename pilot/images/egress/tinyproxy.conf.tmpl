@@ -1,0 +1,14 @@
+# Rendered into a ConfigMap by `pilot up`. Only CONNECT to 443 on allowlisted hosts.
+Port 8888
+Listen 0.0.0.0
+Timeout 600
+MaxClients 20
+LogLevel Connect
+Syslog Off
+DisableViaHeader Yes
+ConnectPort 443
+Filter "/etc/pilot-proxy/allowlist"
+FilterType ere
+FilterURLs Off
+FilterDefaultDeny Yes
+FilterCaseSensitive Off

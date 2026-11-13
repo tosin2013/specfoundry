@@ -1,0 +1,4 @@
+{"description": "gate unit matrix (all refusal cases refuse)", "detail": "gate OK", "id": "GM01", "requirement": "FR-002", "result": "pass"}
+{"description": "missing roadmap refuses", "detail": "gate UNEVALUABLE:exit_2", "id": "GM02", "requirement": "FR-002", "result": "pass"}
+{"description": "status tool error refuses", "detail": "gate UNEVALUABLE:empty", "id": "GM03", "requirement": "FR-002", "result": "pass"}
+{"description": "truncated roadmap refuses B", "detail": "gate UNEVALUABLE:exit_2", "id": "GM04", "requirement": "FR-002", "result": "pass"}

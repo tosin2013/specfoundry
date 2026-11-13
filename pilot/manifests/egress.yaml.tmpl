@@ -1,0 +1,69 @@
+# Domain-allowlisting egress proxy (research R4). Rendered once per proxy by `pilot up`.
+#   ${NS}: pilot-egress-model (clients: role=worker) or pilot-egress-scm (clients: role=publisher)
+apiVersion: v1
+kind: Namespace
+metadata: {name: ${NS}, labels: {specfoundry.io/role: egress}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: proxy, namespace: ${NS}}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: proxy-config, namespace: ${NS}}
+data:
+  tinyproxy.conf: |
+${CONF}
+  allowlist: |
+${ALLOWLIST}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: proxy, namespace: ${NS}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: proxy}}
+  template:
+    metadata: {labels: {app: proxy}}
+    spec:
+      serviceAccountName: proxy
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext: {runAsNonRoot: true, runAsUser: 10003, runAsGroup: 10003, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: proxy
+          image: ${IMAGE}
+          ports: [{containerPort: 8888}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 50m, memory: 32Mi}, limits: {cpu: 500m, memory: 128Mi}}
+          volumeMounts: [{name: config, mountPath: /etc/pilot-proxy}, {name: tmp, mountPath: /tmp}]
+      volumes:
+        - {name: config, configMap: {name: proxy-config}}
+        - {name: tmp, emptyDir: {sizeLimit: 16Mi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: proxy, namespace: ${NS}}
+spec:
+  selector: {app: proxy}
+  ports: [{port: 8888, targetPort: 8888}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: proxy, namespace: ${NS}}
+spec:
+  podSelector: {matchLabels: {app: proxy}}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector: {matchLabels: {specfoundry.io/role: ${CLIENT_ROLE}}}
+      ports: [{protocol: TCP, port: 8888}]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+          podSelector: {matchLabels: {k8s-app: kube-dns}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+    - to:
+        - ipBlock: {cidr: 0.0.0.0/0, except: [192.168.0.0/16, 10.96.0.0/12]}
+      ports: [{protocol: TCP, port: 443}]

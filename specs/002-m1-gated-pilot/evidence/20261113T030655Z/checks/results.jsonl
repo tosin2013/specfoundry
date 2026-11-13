@@ -1,0 +1,32 @@
+{"description": "gate unit matrix (all refusal cases refuse)", "detail": "gate OK", "id": "GM01", "requirement": "FR-002", "result": "pass"}
+{"description": "missing roadmap refuses", "detail": "gate UNEVALUABLE:exit_2", "id": "GM02", "requirement": "FR-002", "result": "pass"}
+{"description": "status tool error refuses", "detail": "gate UNEVALUABLE:empty", "id": "GM03", "requirement": "FR-002", "result": "pass"}
+{"description": "truncated roadmap refuses B", "detail": "gate UNEVALUABLE:exit_2", "id": "GM04", "requirement": "FR-002", "result": "pass"}
+{"description": "worker namespace has exactly 1 pod with 1 container", "detail": "A-1 pods=1 containers=1", "id": "P01", "requirement": "FR-005", "result": "pass"}
+{"description": "SA and pod automount off; no token file", "detail": "A-1 token=absent", "id": "P02", "requirement": "FR-006", "result": "pass"}
+{"description": "default-deny netpol, quota pods=1 secrets=1, Job deadline", "detail": "A-1 quota={'count/configmaps': '2', 'count/secrets': '1', 'limits.cpu': '2', 'limits.memory': '2Gi', 'pods': '1', 'requests.cpu': '1', 'requests.memory': '1Gi'} deadline=1200", "id": "P03", "requirement": "FR-006", "result": "pass"}
+{"description": "only Secret is model-key; no SCM-like secret keys or env names", "detail": "A-1 secrets=['model-key'] keys=['litellm_api_key', 'opencode.json'] bad=[]", "id": "P04", "requirement": "FR-007", "result": "pass"}
+{"description": "no grading material in the worker namespace", "detail": "A-1 configmaps=['inputs', 'kube-root-ca.crt']", "id": "P05", "requirement": "FR-007", "result": "pass"}
+{"description": "model host via proxy reachable; github.com via proxy and direct internet blocked; control reaches github.com", "detail": "A-1 model=http=200 github_via_proxy=http=000 direct=http=000 control=http=200", "id": "P06", "requirement": "FR-009b", "result": "pass"}
+{"description": "worker-policy pod cannot reach the grader stand-in; control can", "detail": "A-1 twin=http=000 control=http=200", "id": "P07", "requirement": "FR-010", "result": "pass"}
+{"description": "worker SA cannot create/patch/exec in its grader namespace", "detail": "A-1 {\"configmaps\": \"no\", \"patch-configmaps\": \"no\", \"pods\": \"no\", \"pods/exec\": \"no\"}", "id": "P08", "requirement": "FR-010", "result": "pass"}
+{"description": "worker namespace has exactly 1 pod with 1 container", "detail": "A-2 pods=1 containers=1", "id": "P01", "requirement": "FR-005", "result": "pass"}
+{"description": "SA and pod automount off; no token file", "detail": "A-2 token=absent", "id": "P02", "requirement": "FR-006", "result": "pass"}
+{"description": "default-deny netpol, quota pods=1 secrets=1, Job deadline", "detail": "A-2 quota={'count/configmaps': '2', 'count/secrets': '1', 'limits.cpu': '2', 'limits.memory': '2Gi', 'pods': '1', 'requests.cpu': '1', 'requests.memory': '1Gi'} deadline=1200", "id": "P03", "requirement": "FR-006", "result": "pass"}
+{"description": "only Secret is model-key; no SCM-like secret keys or env names", "detail": "A-2 secrets=['model-key'] keys=['litellm_api_key', 'opencode.json'] bad=[]", "id": "P04", "requirement": "FR-007", "result": "pass"}
+{"description": "no grading material in the worker namespace", "detail": "A-2 configmaps=['inputs', 'kube-root-ca.crt']", "id": "P05", "requirement": "FR-007", "result": "pass"}
+{"description": "model host via proxy reachable; github.com via proxy and direct internet blocked; control reaches github.com", "detail": "A-2 model=http=200 github_via_proxy=http=000 direct=http=000 control=http=200", "id": "P06", "requirement": "FR-009b", "result": "pass"}
+{"description": "worker-policy pod cannot reach the grader stand-in; control can", "detail": "A-2 twin=http=000 control=http=200", "id": "P07", "requirement": "FR-010", "result": "pass"}
+{"description": "worker SA cannot create/patch/exec in its grader namespace", "detail": "A-2 {\"configmaps\": \"no\", \"patch-configmaps\": \"no\", \"pods\": \"no\", \"pods/exec\": \"no\"}", "id": "P08", "requirement": "FR-010", "result": "pass"}
+{"description": "only pilot-publish holds an SCM credential", "detail": "cluster holders=['pilot-publish/scm-token']", "id": "P09", "requirement": "FR-013", "result": "pass"}
+{"description": "pilot pods digest-pinned, non-root, no privilege escalation", "detail": "cluster pods=4 bad=[]", "id": "P10", "requirement": "S6", "result": "pass"}
+{"description": "worker namespace has exactly 1 pod with 1 container", "detail": "B-1 pods=1 containers=1", "id": "P01", "requirement": "FR-005", "result": "pass"}
+{"description": "SA and pod automount off; no token file", "detail": "B-1 token=absent", "id": "P02", "requirement": "FR-006", "result": "pass"}
+{"description": "default-deny netpol, quota pods=1 secrets=1, Job deadline", "detail": "B-1 quota={'count/configmaps': '2', 'count/secrets': '1', 'limits.cpu': '2', 'limits.memory': '2Gi', 'pods': '1', 'requests.cpu': '1', 'requests.memory': '1Gi'} deadline=1200", "id": "P03", "requirement": "FR-006", "result": "pass"}
+{"description": "only Secret is model-key; no SCM-like secret keys or env names", "detail": "B-1 secrets=['model-key'] keys=['litellm_api_key', 'opencode.json'] bad=[]", "id": "P04", "requirement": "FR-007", "result": "pass"}
+{"description": "no grading material in the worker namespace", "detail": "B-1 configmaps=['inputs', 'kube-root-ca.crt']", "id": "P05", "requirement": "FR-007", "result": "pass"}
+{"description": "model host via proxy reachable; github.com via proxy and direct internet blocked; control reaches github.com", "detail": "B-1 model=http=200 github_via_proxy=http=000 direct=http=000 control=http=200", "id": "P06", "requirement": "FR-009b", "result": "pass"}
+{"description": "worker-policy pod cannot reach the grader stand-in; control can", "detail": "B-1 twin=http=000 control=http=200", "id": "P07", "requirement": "FR-010", "result": "pass"}
+{"description": "worker SA cannot create/patch/exec in its grader namespace", "detail": "B-1 {\"configmaps\": \"no\", \"patch-configmaps\": \"no\", \"pods\": \"no\", \"pods/exec\": \"no\"}", "id": "P08", "requirement": "FR-010", "result": "pass"}
+{"description": "only pilot-publish holds an SCM credential", "detail": "cluster holders=['pilot-publish/scm-token']", "id": "P09", "requirement": "FR-013", "result": "pass"}
+{"description": "pilot pods digest-pinned, non-root, no privilege escalation", "detail": "cluster pods=4 bad=[]", "id": "P10", "requirement": "S6", "result": "pass"}

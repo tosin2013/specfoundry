@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata: {name: ${JOB}, namespace: pilot-publish}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 300
+  template:
+    metadata: {labels: {app: publisher}}
+    spec:
+      serviceAccountName: publisher
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      restartPolicy: Never
+      securityContext: {runAsNonRoot: true, runAsUser: 10002, runAsGroup: 10002, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: publisher
+          image: ${TOOLS_IMAGE}
+          command: [python3, /usr/local/lib/pilot/publish.py]
+          envFrom: [{secretRef: {name: scm-token}}]
+          env:
+            - {name: HTTPS_PROXY, value: "http://proxy.pilot-egress-scm.svc.cluster.local:8888"}
+            - {name: https_proxy, value: "http://proxy.pilot-egress-scm.svc.cluster.local:8888"}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts:
+            - {name: pub, mountPath: /in, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: pub, configMap: {name: ${CONFIGMAP}}}
+        - {name: tmp, emptyDir: {sizeLimit: 128Mi}}

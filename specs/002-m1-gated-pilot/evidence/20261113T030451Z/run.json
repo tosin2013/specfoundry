@@ -1,0 +1,27 @@
+{
+  "created": "2026-11-13T03:04:51Z",
+  "event_seq": 5,
+  "fixture_base": "0eaa3d7bded9c01242c5fa5be39a7eb35bf10f09",
+  "gate_seq": 2,
+  "model_host": "sha256:f7255209538f063d",
+  "reason": "MODE_NOT_CONFIRMED",
+  "run_id": "20261113T030451Z",
+  "state": "failed",
+  "tasks": {
+    "A": {
+      "attempts": [],
+      "base_revision": "0eaa3d7bded9c01242c5fa5be39a7eb35bf10f09",
+      "gate_seqs": [
+        1
+      ],
+      "state": "pending"
+    },
+    "B": {
+      "attempts": [],
+      "gate_seqs": [
+        2
+      ],
+      "state": "pending"
+    }
+  }
+}

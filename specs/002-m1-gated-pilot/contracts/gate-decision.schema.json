@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "specfoundry/pilot/gate-decision/v1",
+  "title": "Gate decision",
+  "type": "object",
+  "required": ["version", "seq", "task", "item_id", "decision", "reasons", "input", "at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"const": 1},
+    "seq": {"type": "integer", "minimum": 1},
+    "task": {"enum": ["A", "B"]},
+    "item_id": {"type": "string"},
+    "decision": {"enum": ["allow", "refuse"]},
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(OK|UNEVALUABLE:[a-z0-9_]+|SCHEMA_MISMATCH|INCOMPLETE|ITEM_MISSING|ITEM_DUPLICATE|STATUS_UNKNOWN|INACTIVE|ALREADY_(IMPLEMENTED|VERIFIED)|STATUS_NOT_STARTABLE:[a-z-]+|DEP_UNSATISFIED:[A-Za-z0-9._-]+|ITEM_ERROR_DIAGNOSTIC:[A-Z_]+|INCONSISTENT_BLOCKED_COUNT)$"
+      },
+      "minItems": 1
+    },
+    "input": {
+      "type": "object",
+      "required": ["fixture_repo", "fixture_commit", "spec_version", "spec_status_exit", "spec_status_json_sha256"],
+      "properties": {
+        "fixture_repo": {"type": "string"},
+        "fixture_commit": {"type": ["string", "null"]},
+        "spec_version": {"type": "string"},
+        "spec_status_exit": {"type": ["integer", "null"]},
+        "spec_status_json_sha256": {"type": ["string", "null"]}
+      }
+    },
+    "at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {"if": {"properties": {"decision": {"const": "allow"}}},
+     "then": {"properties": {"reasons": {"const": ["OK"]}}}}
+  ]
+}

@@ -1,0 +1,100 @@
+# One worker attempt's namespace (FR-005, FR-006). Also used for the probe twin (same policies).
+apiVersion: v1
+kind: Namespace
+metadata: {name: pilot-w-a-1, labels: {specfoundry.io/role: worker, specfoundry.io/run: "20261113T030655Z"}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: worker, namespace: pilot-w-a-1}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: worker-quota, namespace: pilot-w-a-1}
+spec:
+  hard:
+    pods: "1"
+    count/secrets: "1"
+    count/configmaps: "2"
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+---
+apiVersion: v1
+kind: LimitRange
+metadata: {name: worker-limits, namespace: pilot-w-a-1}
+spec:
+  limits:
+    - type: Container
+      default: {cpu: 500m, memory: 256Mi}
+      defaultRequest: {cpu: 100m, memory: 64Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny-all, namespace: pilot-w-a-1}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-egress-dns-and-model-proxy, namespace: pilot-w-a-1}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+          podSelector: {matchLabels: {k8s-app: kube-dns}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pilot-egress-model}}
+          podSelector: {matchLabels: {app: proxy}}
+      ports: [{protocol: TCP, port: 8888}]
+
+---
+# The worker Job for one attempt (contracts/worker-io.md).
+apiVersion: batch/v1
+kind: Job
+metadata: {name: worker, namespace: pilot-w-a-1}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 1200
+  template:
+    metadata: {labels: {app: worker}}
+    spec:
+      serviceAccountName: worker
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: worker
+          image: localhost:5001/pilot-worker@sha256:934fd396efb8de8b45ffdcb57d00796033e7b37506080ea91ab68821ac1b8af3
+          env:
+            - {name: PILOT_MODEL, value: "litellm/claude-sonnet-4-6"}
+            - {name: PILOT_SPEND_CAP_USD, value: "1.00"}
+            - {name: PILOT_TOKEN_CAP, value: "2000000"}
+            - {name: HTTPS_PROXY, value: "http://proxy.pilot-egress-model.svc.cluster.local:8888"}
+            - {name: https_proxy, value: "http://proxy.pilot-egress-model.svc.cluster.local:8888"}
+            - {name: NO_PROXY, value: ""}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 500m, memory: 512Mi}, limits: {cpu: "2", memory: 2Gi}}
+          volumeMounts:
+            - {name: inputs, mountPath: /in, readOnly: true}
+            - {name: work, mountPath: /work}
+            - {name: home, mountPath: /home/worker}
+            - {name: model-key, mountPath: /home/worker/.config/opencode, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: inputs, configMap: {name: inputs}}
+        - {name: work, emptyDir: {sizeLimit: 512Mi}}
+        - {name: home, emptyDir: {sizeLimit: 256Mi}}
+        - {name: model-key, secret: {secretName: model-key, defaultMode: 0440}}
+        - {name: tmp, emptyDir: {sizeLimit: 256Mi}}

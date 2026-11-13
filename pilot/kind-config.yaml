@@ -1,0 +1,17 @@
+# kind cluster for the M1 pilot. Default CNI (kindnet) is disabled because it does not
+# enforce NetworkPolicy (roadmap C-06); Calico is installed by `pilot up`.
+# localhost:5001 is mapped to the local registry container through a hosts.toml written by
+# `pilot up` (kind local-registry pattern), so pods can pull pilot images by @sha256 digest.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: specfoundry-m1
+networking:
+  disableDefaultCNI: true
+  podSubnet: 192.168.0.0/16
+  serviceSubnet: 10.96.0.0/12
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "/etc/containerd/certs.d"
+nodes:
+  - role: control-plane
