@@ -224,7 +224,7 @@ strings. The guide itself is validated by the owner's fresh-machine run.
   - copy the run's evidence to `specs/006-operator-guide/evidence/<run-id>/`.
 - [ ] T029 Fix every hesitation, deviation and lookup recorded in `specs/006-operator-guide/evidence/validation-log.md`, one commit per finding (link each commit in the log); re-run the docs check
 - [ ] T030 **Owner action — troubleshooting spot checks** (quickstart.md §4), on the validation machine: a tag-only image, a wrong CNI hash, no TTY, an open pilot PR, `resume` before merge, each resolved with `docs/troubleshooting.md` only. Record the results in `specs/006-operator-guide/evidence/validation-log.md`.
-- [ ] T031 Local privacy check (SC-006): `grep -rniF '<model host>' docs/ specs/006-operator-guide/` returns nothing, and `pilot/pilot audit --run <run-id>` gives AU08 pass. Record the result in `specs/006-operator-guide/evidence/validation-log.md`.
+- [X] T031 Local privacy check (SC-006): `grep -rniF '<model host>' docs/ specs/006-operator-guide/` returns nothing, and `pilot/pilot audit --run <run-id>` gives AU08 pass. Record the result in `specs/006-operator-guide/evidence/validation-log.md`.
 - [ ] T032 Add an Evidence section to `specs/006-operator-guide/spec.md` (validation run, log, hands-on time). Then run `/speckit-roadmap-debrief`, and with your approval `/speckit-roadmap-write`: 006 status, Spec dir, and the stale "003 (Kelos)" wording in 006's scope fixed.
 
 ---
@@ -304,3 +304,13 @@ the fresh-machine run. Troubleshooting (US2) can be written alongside, and is ne
 
   New `docs/providers.md` takes over provider setup and spend caps from `harnesses.md`.
   OpenCode stays the default harness for the release.
+- **F3: a token that failed the scope check was still saved.** The first token on the
+  validation machine could also write this repo (`canary_push: True`); the check reported
+  NOT OK, but `publisher.env` already held the token. `publisher-token` now writes to a
+  staging file and only replaces `publisher.env` when the check passes; a failing token is
+  deleted and any previous token is kept. Guide section 6 and the troubleshooting entry say so.
+
+**Round 1 result:** run `20261114T160532Z` on the validation machine: audit 11/11 (AU07
+after `down`), both fixture PRs merged by the owner. Still open: machine details, timings
+and teardown rows in `evidence/validation-log.md` (T028), copying the run's evidence into
+`evidence/20261114T160532Z/` (T028), and the troubleshooting spot checks (T030).

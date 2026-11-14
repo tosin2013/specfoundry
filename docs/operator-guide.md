@@ -297,6 +297,9 @@ What each line means:
   unreferenced blob, not from GitHub's permission labels.
 - **`expires`:** when you'll need a new token.
 
+The token is saved only if the check passes; the command then also prints `saved:` and the
+file path. A token that fails is thrown away, and any token you saved earlier stays in place.
+
 **Why the scope matters.** Only the *publisher* ever holds this token; workers never see it.
 Even so, a token that can write only a throwaway repo limits the damage if anything goes
 wrong. Until roadmap item 004, PRs will show your account as their author.

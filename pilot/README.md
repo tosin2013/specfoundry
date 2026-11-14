@@ -37,7 +37,7 @@ verified.
 
 ```sh
 pilot/pilot import-opencode --fixture-repo <owner>/<name>-pilot-fixture  # reuse host OpenCode config; writes pilot.env
-pilot/pilot publisher-token # hidden prompt -> publisher.env (0600), then verify scope + expiry
+pilot/pilot publisher-token # hidden prompt -> verify scope + expiry -> publisher.env (0600) only if OK
 pilot/pilot up              # kind + Calico (hash-checked), images by digest, proxies, publisher namespace
 pilot/pilot up --local-build  # development: build pilot/images/ locally instead of pulling
 pilot/pilot reset-fixture   # reset the throwaway repo to pilot/fixture/
