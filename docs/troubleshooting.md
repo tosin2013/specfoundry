@@ -41,7 +41,8 @@ instead.
 - **Cause:** OpenCode resolves `"apiKey": "{file:~/.config/opencode/<provider>_api_key}"`
   inside the worker. If the key file is missing, empty or wrongly named, the provider rejects
   the request.
-- **Fix:**
+- **Fix:** if OpenCode works on your machine, run `pilot/pilot import-opencode --force` to copy
+  its setup again. Otherwise:
   1. Put the key, on one line, into `~/.config/specfoundry/opencode/<provider>_api_key`.
   2. Make sure `<provider>` matches the name in the `{file:...}` reference.
   3. Set modes: `chmod 700 ~/.config/specfoundry/opencode` and `chmod 600` on each file inside.
@@ -60,7 +61,7 @@ instead.
   describe your account rather than the token on public repositories.
 - **Fix:** delete the token on GitHub. Create a fine-grained token with **Only select
   repositories** set to your fixture repo
-  ([guide section 5](operator-guide.md#5-prepare-a-throwaway-fixture-repo-and-a-scoped-token)),
+  ([guide section 6](operator-guide.md#6-prepare-a-throwaway-fixture-repo-and-a-scoped-token)),
   then run `pilot/pilot publisher-token` again.
 - **Confirm:** the output shows `repo_push: True` and `canary_push: False`.
 - **Source:** commit 7570552 (the write probe replaced permission labels after the repo went

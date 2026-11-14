@@ -9,8 +9,8 @@ pilot. Follow it top to bottom. If anything fails, the matching entry in
 2. [How specfoundry keeps you safe](#2-how-specfoundry-keeps-you-safe)
 3. [Before you start](#3-before-you-start)
 4. [Install the tools](#4-install-the-tools)
-5. [Prepare a throwaway fixture repo and a scoped token](#5-prepare-a-throwaway-fixture-repo-and-a-scoped-token)
-6. [Configure your model provider](#6-configure-your-model-provider)
+5. [Configure your model provider](#5-configure-your-model-provider)
+6. [Prepare a throwaway fixture repo and a scoped token](#6-prepare-a-throwaway-fixture-repo-and-a-scoped-token)
 7. [Stand up](#7-stand-up)
 8. [Run the pilot, every prompt explained](#8-run-the-pilot-every-prompt-explained)
 9. [The merge pause, then resume](#9-the-merge-pause-then-resume)
@@ -72,7 +72,7 @@ run, and the check IDs appear in your evidence (section 10).
 - **PRs show your account as author.** A fine-grained token belongs to a person. A GitHub App
   identity is planned (roadmap 004).
 - **Spend caps may run on tokens.** Many OpenAI-compatible gateways report a cost of 0, so the
-  cap applies to tokens (default 2,000,000 per attempt). See section 6 to declare prices.
+  cap applies to tokens (default 2,000,000 per attempt). See section 5 to declare prices.
 - **The gate runs on your machine**, not in the cluster (there's no spec-status container
   image yet).
 - **Your provider key is long-lived.** It's copied into a fresh Secret for each attempt and
@@ -160,14 +160,112 @@ You should see Docker's hello message, `Logged in to github.com`, `spec 0.2.0`, 
 
 ---
 
-## 5. Prepare a throwaway fixture repo and a scoped token
+## 5. Configure your model provider
+
+The worker runs [OpenCode](https://github.com/anomalyco/opencode), the default and only
+harness in this release, against your model provider. Any OpenAI-compatible endpoint with a
+tool-calling model works. This step creates two things under `~/.config/specfoundry/`:
+- **`opencode/`:** OpenCode's config plus your API key, kept in a separate file;
+- **`pilot.env`:** the pilot's settings. Every `pilot/pilot` command reads this file, so it
+  comes first.
+
+**First, choose your fixture repo's name.** It must end in `-pilot-fixture`, for example
+`<you>-pilot-fixture`. You'll create the repo in section 6.
+
+### If you already use OpenCode
+
+```sh
+pilot/pilot import-opencode --fixture-repo <you>/<you>-pilot-fixture
+```
+
+```text
+imported OpenCode config: ~/.config/opencode -> ~/.config/specfoundry/opencode
+  model: <provider>/<model>
+  key files: <provider>_api_key
+wrote ~/.config/specfoundry/pilot.env (model, its egress host, default caps)
+```
+
+This copies only your default model's provider and its key file, and writes `pilot.env`. It
+never prints your key or your provider's host. It refuses a config with a literal key or an
+`{env:...}` reference, and the error tells you how to fix it. Details and options:
+[providers.md](providers.md#option-a-you-already-use-opencode).
+
+Then continue to section 6.
+
+### Otherwise, write it by hand
+
+```sh
+install -d -m 700 ~/.config/specfoundry/opencode
+install -m 600 /dev/null ~/.config/specfoundry/opencode/myprovider_api_key
+install -m 600 /dev/null ~/.config/specfoundry/opencode/opencode.json
+# now put your API key into myprovider_api_key with an editor (one line, no quotes)
+```
+
+Edit `~/.config/specfoundry/opencode/opencode.json`, using your provider's URL and model. The
+`apiKey` **must** be a file reference, never the key itself; the pilot refuses literal keys.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "providers": {
+    "myprovider": {
+      "name": "My provider",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "https://api.example.com/v1",
+        "apiKey": "{file:~/.config/opencode/myprovider_api_key}"
+      },
+      "models": {
+        "my-model": {
+          "name": "My model",
+          "modelID": "my-model",
+          "capabilities": {"tools": true, "input": ["text"], "output": ["text"]}
+        }
+      }
+    }
+  },
+  "model": "myprovider/my-model"
+}
+```
+
+The path says `~/.config/opencode/...`, not `specfoundry`, on purpose: inside the worker,
+this directory is mounted as OpenCode's own config directory.
+
+Then create `~/.config/specfoundry/pilot.env`:
+
+```sh
+install -m 600 /dev/null ~/.config/specfoundry/pilot.env
+cat > ~/.config/specfoundry/pilot.env <<'EOF'
+PILOT_FIXTURE_REPO=<you>/<you>-pilot-fixture
+PILOT_FIXTURE_BRANCH=main
+PILOT_MODEL=myprovider/my-model
+PILOT_MODEL_EGRESS_HOSTS=api.example.com
+PILOT_SPEND_CAP_USD=1.00
+PILOT_TOKEN_CAP=2000000
+PILOT_PROVIDER_CAP_DECLARED=false
+EOF
+```
+
+### Either way
+
+- **`PILOT_MODEL_EGRESS_HOSTS`** is the host from your `baseURL`. It's the only place workers
+  may connect to. The evidence records only a hash of it.
+- **Spend:** if your provider reports no cost (many gateways don't), the cap runs on tokens.
+  To get a cap in dollars, declare your model's prices; see
+  [providers.md](providers.md#spend-caps).
+- **Other providers**, such as vendor-specific packages or a self-hosted endpoint, are
+  covered in [providers.md](providers.md).
+
+---
+
+## 6. Prepare a throwaway fixture repo and a scoped token
 
 The pilot works on a **throwaway repository** that it force-resets at the start of each run.
 Never point it at a repository you care about.
 
 1. **Create the fixture repo.** On GitHub, create a new, **empty** repository (no README,
-   licence or .gitignore). Its name must end in `-pilot-fixture`, for example
-   `<you>-pilot-fixture`. Public or private both work.
+   licence or .gitignore), with the name you put in `PILOT_FIXTURE_REPO` in section 5.
+   Public or private both work.
 2. **Create a fine-grained token for that repo only.** On GitHub go to
    *Settings → Developer settings → Fine-grained tokens → Generate new token*:
    - **Repository access:** *Only select repositories* → your fixture repo.
@@ -202,73 +300,6 @@ What each line means:
 **Why the scope matters.** Only the *publisher* ever holds this token; workers never see it.
 Even so, a token that can write only a throwaway repo limits the damage if anything goes
 wrong. Until roadmap item 004, PRs will show your account as their author.
-
----
-
-## 6. Configure your model provider
-
-The worker runs [OpenCode](https://github.com/anomalyco/opencode) against any
-OpenAI-compatible endpoint. Its configuration is a directory with two files: the config, and
-the key in a separate file. Only the directory's path is ever passed around.
-
-```sh
-install -d -m 700 ~/.config/specfoundry/opencode
-install -m 600 /dev/null ~/.config/specfoundry/opencode/myprovider_api_key
-# now put your API key into that file with an editor (one line, no quotes)
-```
-
-Create `~/.config/specfoundry/opencode/opencode.json` with mode 600 (start with
-`install -m 600 /dev/null ~/.config/specfoundry/opencode/opencode.json`, then edit it). The
-`apiKey` **must** be a file reference, never the key itself; the pilot refuses literal keys.
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "providers": {
-    "myprovider": {
-      "name": "My provider",
-      "package": "@opencode/ai/providers/openai-compatible",
-      "settings": {
-        "baseURL": "https://api.example.com/v1",
-        "apiKey": "{file:~/.config/opencode/myprovider_api_key}"
-      },
-      "models": {
-        "my-model": {
-          "name": "My model",
-          "modelID": "my-model",
-          "capabilities": {"tools": true, "input": ["text"], "output": ["text"]}
-        }
-      }
-    }
-  },
-  "model": "myprovider/my-model"
-}
-```
-
-The path says `~/.config/opencode/...`, not `specfoundry`. That's deliberate: inside the
-worker, this directory is mounted as OpenCode's own config directory.
-
-Then create `~/.config/specfoundry/pilot.env` (mode 600):
-
-```sh
-install -m 600 /dev/null ~/.config/specfoundry/pilot.env
-cat > ~/.config/specfoundry/pilot.env <<'EOF'
-PILOT_FIXTURE_REPO=<you>/<you>-pilot-fixture
-PILOT_FIXTURE_BRANCH=main
-PILOT_MODEL=myprovider/my-model
-PILOT_MODEL_EGRESS_HOSTS=api.example.com
-PILOT_SPEND_CAP_USD=1.00
-PILOT_TOKEN_CAP=2000000
-PILOT_PROVIDER_CAP_DECLARED=false
-EOF
-```
-
-- **`PILOT_MODEL_EGRESS_HOSTS`** is the host from your `baseURL`. It's the only place
-  workers may connect to. The evidence records only a hash of it.
-- **Spend:** if your provider reports no cost (many gateways don't), the cap runs on tokens.
-  To get a cap in dollars, add per-million-token prices to your model entry, as
-  `"cost": {"input": <usd>, "output": <usd>}`.
-- More options, and other harnesses: [docs/harnesses.md](harnesses.md).
 
 ---
 

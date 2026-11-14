@@ -291,3 +291,16 @@ the fresh-machine run. Troubleshooting (US2) can be written alongside, and is ne
   - all 13 outline sections are in order;
   - all 13 troubleshooting entries are present, with stable anchors;
   - a local scan for the model host finds nothing in `docs/`, the READMEs or this spec.
+
+## Validation findings (2026-11-14, round 1)
+
+- **F1: `publisher-token` came before `pilot.env` existed.** Guide sections 5 and 6 are
+  swapped (b4868d6), and missing-config errors now name the fix.
+- **F2 (owner feedback): reuse an existing OpenCode setup.** New command
+  `pilot/pilot import-opencode`:
+  - copies only the default model's provider and its key file, using `install -m 600`;
+  - writes `pilot.env`, or compares it with an existing one, without ever printing the host;
+  - refuses literal keys and `{env:}` references, and won't overwrite without `--force`.
+
+  New `docs/providers.md` takes over provider setup and spend caps from `harnesses.md`.
+  OpenCode stays the default harness for the release.
