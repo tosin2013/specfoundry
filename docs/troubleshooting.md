@@ -54,7 +54,7 @@ instead.
 ### Token can write too much: "token can write …: scope it to the fixture repo only"
 
 - **Symptom:** `pilot/pilot publisher-token` prints `publisher token: NOT OK`,
-  `canary_push: True` and this problem line.
+  `canary_push: True`, this problem line, and `not saved: …`. The token was thrown away.
 - **Cause:** the token can push to the specfoundry repository you cloned from (the
   "canary"). That usually means a classic token, or a fine-grained token with *All
   repositories* access. The check is a real write test, not GitHub's permission labels, which
