@@ -9,8 +9,8 @@ pilot. Follow it top to bottom. If anything fails, the matching entry in
 2. [How specfoundry keeps you safe](#2-how-specfoundry-keeps-you-safe)
 3. [Before you start](#3-before-you-start)
 4. [Install the tools](#4-install-the-tools)
-5. [Prepare a throwaway fixture repo and a scoped token](#5-prepare-a-throwaway-fixture-repo-and-a-scoped-token)
-6. [Configure your model provider](#6-configure-your-model-provider)
+5. [Configure your model provider](#5-configure-your-model-provider)
+6. [Prepare a throwaway fixture repo and a scoped token](#6-prepare-a-throwaway-fixture-repo-and-a-scoped-token)
 7. [Stand up](#7-stand-up)
 8. [Run the pilot, every prompt explained](#8-run-the-pilot-every-prompt-explained)
 9. [The merge pause, then resume](#9-the-merge-pause-then-resume)
@@ -72,7 +72,7 @@ run, and the check IDs appear in your evidence (section 10).
 - **PRs show your account as author.** A fine-grained token belongs to a person. A GitHub App
   identity is planned (roadmap 004).
 - **Spend caps may run on tokens.** Many OpenAI-compatible gateways report a cost of 0, so the
-  cap applies to tokens (default 2,000,000 per attempt). See section 6 to declare prices.
+  cap applies to tokens (default 2,000,000 per attempt). See section 5 to declare prices.
 - **The gate runs on your machine**, not in the cluster (there's no spec-status container
   image yet).
 - **Your provider key is long-lived.** It's copied into a fresh Secret for each attempt and
@@ -160,52 +160,7 @@ You should see Docker's hello message, `Logged in to github.com`, `spec 0.2.0`, 
 
 ---
 
-## 5. Prepare a throwaway fixture repo and a scoped token
-
-The pilot works on a **throwaway repository** that it force-resets at the start of each run.
-Never point it at a repository you care about.
-
-1. **Create the fixture repo.** On GitHub, create a new, **empty** repository (no README,
-   licence or .gitignore). Its name must end in `-pilot-fixture`, for example
-   `<you>-pilot-fixture`. Public or private both work.
-2. **Create a fine-grained token for that repo only.** On GitHub go to
-   *Settings → Developer settings → Fine-grained tokens → Generate new token*:
-   - **Repository access:** *Only select repositories* → your fixture repo.
-   - **Permissions:** *Contents* read and write; *Pull requests* read and write. *Metadata*
-     read-only is added automatically.
-   - **Expiration:** short, for example 7–30 days.
-3. **Store and check it.** The token goes through a hidden prompt straight into a 0600 file.
-   It never appears on screen, in shell history or in logs.
-
-```sh
-pilot/pilot publisher-token
-```
-
-```text
-from run 20261113T180203Z (token check)
-publisher token: OK
-  login: tosin2013
-  repo: tosin2013/craz3-pilot-fixture
-  repo_push: True
-  canary: tosin2013/specfoundry
-  canary_push: False
-  expires: 2026-12-13 02:58:52 UTC
-```
-
-What each line means:
-- **`repo_push: True`:** the token can write your fixture repo. That's required.
-- **`canary_push: False`:** the token can **not** write the project's own repository. That
-  proves it's scoped narrowly. Both results come from a real write test, an invisible
-  unreferenced blob, not from GitHub's permission labels.
-- **`expires`:** when you'll need a new token.
-
-**Why the scope matters.** Only the *publisher* ever holds this token; workers never see it.
-Even so, a token that can write only a throwaway repo limits the damage if anything goes
-wrong. Until roadmap item 004, PRs will show your account as their author.
-
----
-
-## 6. Configure your model provider
+## 5. Configure your model provider
 
 The worker runs [OpenCode](https://github.com/anomalyco/opencode) against any
 OpenAI-compatible endpoint. Its configuration is a directory with two files: the config, and
@@ -248,7 +203,9 @@ Create `~/.config/specfoundry/opencode/opencode.json` with mode 600 (start with
 The path says `~/.config/opencode/...`, not `specfoundry`. That's deliberate: inside the
 worker, this directory is mounted as OpenCode's own config directory.
 
-Then create `~/.config/specfoundry/pilot.env` (mode 600):
+Then create `~/.config/specfoundry/pilot.env` (mode 600). Every `pilot/pilot` command reads
+it, so it comes first. Choose your fixture repo's name now; it must end in `-pilot-fixture`,
+and you'll create the repo in section 6.
 
 ```sh
 install -m 600 /dev/null ~/.config/specfoundry/pilot.env
@@ -269,6 +226,51 @@ EOF
   To get a cap in dollars, add per-million-token prices to your model entry, as
   `"cost": {"input": <usd>, "output": <usd>}`.
 - More options, and other harnesses: [docs/harnesses.md](harnesses.md).
+
+---
+
+## 6. Prepare a throwaway fixture repo and a scoped token
+
+The pilot works on a **throwaway repository** that it force-resets at the start of each run.
+Never point it at a repository you care about.
+
+1. **Create the fixture repo.** On GitHub, create a new, **empty** repository (no README,
+   licence or .gitignore), with the name you put in `PILOT_FIXTURE_REPO` in section 5.
+   Public or private both work.
+2. **Create a fine-grained token for that repo only.** On GitHub go to
+   *Settings → Developer settings → Fine-grained tokens → Generate new token*:
+   - **Repository access:** *Only select repositories* → your fixture repo.
+   - **Permissions:** *Contents* read and write; *Pull requests* read and write. *Metadata*
+     read-only is added automatically.
+   - **Expiration:** short, for example 7–30 days.
+3. **Store and check it.** The token goes through a hidden prompt straight into a 0600 file.
+   It never appears on screen, in shell history or in logs.
+
+```sh
+pilot/pilot publisher-token
+```
+
+```text
+from run 20261113T180203Z (token check)
+publisher token: OK
+  login: tosin2013
+  repo: tosin2013/craz3-pilot-fixture
+  repo_push: True
+  canary: tosin2013/specfoundry
+  canary_push: False
+  expires: 2026-12-13 02:58:52 UTC
+```
+
+What each line means:
+- **`repo_push: True`:** the token can write your fixture repo. That's required.
+- **`canary_push: False`:** the token can **not** write the project's own repository. That
+  proves it's scoped narrowly. Both results come from a real write test, an invisible
+  unreferenced blob, not from GitHub's permission labels.
+- **`expires`:** when you'll need a new token.
+
+**Why the scope matters.** Only the *publisher* ever holds this token; workers never see it.
+Even so, a token that can write only a throwaway repo limits the damage if anything goes
+wrong. Until roadmap item 004, PRs will show your account as their author.
 
 ---
 

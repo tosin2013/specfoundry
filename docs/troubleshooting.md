@@ -60,7 +60,7 @@ instead.
   describe your account rather than the token on public repositories.
 - **Fix:** delete the token on GitHub. Create a fine-grained token with **Only select
   repositories** set to your fixture repo
-  ([guide section 5](operator-guide.md#5-prepare-a-throwaway-fixture-repo-and-a-scoped-token)),
+  ([guide section 6](operator-guide.md#6-prepare-a-throwaway-fixture-repo-and-a-scoped-token)),
   then run `pilot/pilot publisher-token` again.
 - **Confirm:** the output shows `repo_push: True` and `canary_push: False`.
 - **Source:** commit 7570552 (the write probe replaced permission labels after the repo went
