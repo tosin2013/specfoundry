@@ -22,6 +22,11 @@ def _parser() -> argparse.ArgumentParser:
                     help="build images locally into a kind-local registry instead of pulling pinned digests")
     pt = sub.add_parser("publisher-token", help="write publisher.env from a hidden prompt and verify its scope")
     pt.add_argument("--check-only", action="store_true", help="only verify the existing publisher.env")
+    io = sub.add_parser("import-opencode", help="reuse your existing OpenCode config (provider + key file) for the worker")
+    io.add_argument("--from", dest="src", default="~/.config/opencode", help="OpenCode config dir (default ~/.config/opencode)")
+    io.add_argument("--model", help="<provider>/<model> to use (default: the config's \"model\")")
+    io.add_argument("--fixture-repo", help="owner/name of your -pilot-fixture repo, written to a new pilot.env")
+    io.add_argument("--force", action="store_true", help="replace an existing worker OpenCode config")
     rf = sub.add_parser("reset-fixture", help="force-reset the throwaway fixture repo")
     rf.add_argument("--yes", action="store_true")
     sub.add_parser("run", help="start a new pilot run")
@@ -88,6 +93,11 @@ def main(argv=None) -> int:
         if args.cmd == "publisher-token":
             from . import config, publisher_token
             return publisher_token.run(config.load(require_secrets=False), check_only=args.check_only)
+        if args.cmd == "import-opencode":
+            from pathlib import Path
+            from . import import_opencode
+            return import_opencode.run(Path(args.src).expanduser(), model=args.model,
+                                       fixture_repo=args.fixture_repo, force=args.force)
         if args.cmd == "reset-fixture":
             from . import config, fixture
             return fixture.reset(config.load(require_secrets=False), yes=args.yes)
