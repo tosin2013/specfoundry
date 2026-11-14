@@ -1,6 +1,30 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.5.0 → 1.6.0
+Bump rationale: MINOR — a new planned spec (011), a new constraint (C-11), a new open
+question (Q7), and material scope changes to 004 and 005.
+
+Changes this revision (owner decisions 2026-11-14, from the 006 fresh-machine validation
+discussion):
+  - New C-11: two modes, one set of guarantees. Laptop mode (operator off): the CLI
+    orchestrates. Cluster mode (operator on): the CLI is a client of an in-cluster operator.
+    Human approvals can be given on GitHub in both modes; publisher credentials may be a
+    fine-grained token or a GitHub App in either mode
+  - New entry: 011 Cluster mode: specfoundry Kubernetes operator
+  - 004: GitHub approvals for the human decisions (both modes) added to scope; the publisher
+    credential note changes from "replace the token with a GitHub App" to "support both,
+    chosen per install" (old text struck through)
+  - 005: note that a remote OpenShift cluster is first driven by the laptop CLI (configurable
+    kube context, preflight instead of cluster creation, namespace permissions); in-cluster
+    orchestration is 011
+  - New Q7: product name and CLI interface ("pilot" is a prototype name)
+  - Cross-cutting: 007, 009 and 010 run in the operator in cluster mode
+
+Specs affected: 004, 005, 011 (new); 007, 009, 010 (note only)
+Open questions added/resolved: Q7 added
+
+Previous revision 1.5.0 (2026-11-13):
 Version change: 1.4.0 → 1.5.0
 Bump rationale: MINOR — four new planned specs (007–010) and an open question resolved,
 plus a status transition (003 → verified) and wording updates.
@@ -180,6 +204,16 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   a collector the operator runs. Nothing leaves the operator's environment unless they
   configure it; no phone-home usage telemetry; never secrets, prompts or source code
   (constitution Security & Isolation Constraints, 1.1.0).
+- **C-11 — Two modes, one set of guarantees:** *laptop mode* (operator off): the CLI runs the
+  orchestration itself against a local or remote cluster. *Cluster mode* (operator on): the
+  CLI is a client of the specfoundry Kubernetes operator running in the cluster. The CLI
+  detects which applies, or the operator chooses it in configuration. Both modes keep C-01
+  to C-10, produce the same evidence and pass the same audit; cluster mode adds features and
+  never relaxes a guarantee. The human decisions (mode confirmation, retries, merge, approving
+  a status change) can be given on GitHub in both modes; terminal prompts stay available in
+  laptop mode. The publisher's SCM credential may be a fine-grained token or a GitHub App
+  (per-run installation tokens) in either mode; the same checks apply to both (decided
+  2026-11-14).
 
 ## Planned Specs
 
@@ -279,14 +313,23 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Description:** Tie roadmap entries, issues and PRs together on GitHub.
 - **Outcome:** taskstoissues creates one issue per task, labels mirror spec status
   state, PRs carry Closes #N, and reconcile after merge shows no drift.
-- **Scope (in):** issue creation, label sync, PR linking, post-merge reconcile.
+- **Scope (in):** issue creation, label sync, PR linking, post-merge reconcile. Added
+  2026-11-14: GitHub approvals for the human decisions (mode, retry, approving a status
+  change; merge is already on GitHub), usable in laptop and cluster mode (C-11); GitHub App
+  as a second publisher credential beside the fine-grained token, with setup docs and checks.
 - **Scope (out):** Bitbucket and other SCMs.
 - **Depends on:** 003
-- **Governed by:** C-01, C-04
+- **Governed by:** C-01, C-04, C-11
 - **Addresses:** docs/prd.md §9 M3, F3, F11
-- **Notes:** Replace the publisher's fine-grained token with a GitHub App that mints a
+- **Notes:** ~~Replace the publisher's fine-grained token with a GitHub App that mints a
   1-hour installation token per run, scoped to the target repo, so PRs show
-  `<app>[bot]` rather than the owner's account. In 002 the token owner is the operator,
+  `<app>[bot]` rather than the owner's account.~~ **Amended 2026-11-14: support both,
+  chosen per install.** The fine-grained token stays the default (simplest; PRs show the
+  owner's account). The GitHub App mints a 1-hour installation token per run, requested for
+  the target repo only with contents and pull-request write, so PRs show `<app>[bot]`; it is
+  recommended for teams and cluster mode, not required. In laptop mode the App's private key
+  stays on the host and only the short-lived token enters the cluster. Both pass the same
+  write probe (fixture writable, canary not) and P09. In 002 the token owner is the operator,
   which weakens PRD §10 metric 2 as seen from GitHub (the evidence audit still shows the
   publisher Job opened every PR). Learned in 003: new repositories block GitHub Actions
   from opening PRs until *Allow GitHub Actions to create and approve pull requests* is
@@ -311,7 +354,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   as an arbitrary UID and mirror by digest). Revisit per-run provider keys here (carried
   from 003; enterprise secret managers may make them practical). Candidate: an explicit
   `podFailurePolicy` on worker Jobs, so infrastructure disruptions are recorded distinctly
-  from worker failures (from the 003 Kelos review).
+  from worker failures (from the 003 Kelos review). Added 2026-11-14: first prove the laptop
+  CLI against a remote OpenShift cluster (C-11 laptop mode): a configurable kube context
+  instead of the hard-coded kind context, preflight checks instead of creating a cluster,
+  and enterprise namespace permissions (users often cannot create namespaces).
+  Orchestration inside the cluster is 011.
 
 ### 006 — Operator guide: repeat the pilot from zero  [status: planned]
 
@@ -392,6 +439,27 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Addresses:** docs/prd.md F6
 - **Notes:** Proposed in the 003 Kelos review (owner decision 2026-11-13).
 
+### 011 — Cluster mode: specfoundry Kubernetes operator  [status: planned]
+
+- **Description:** An in-cluster operator runs governed runs, with the CLI as its client
+  (operator on); the CLI still works standalone (operator off).
+- **Outcome:** The operator runs governed runs inside the cluster under its own scoped
+  service account, with human approvals on GitHub. The CLI works with it (operator on) or
+  without it (operator off). A cluster-mode run passes the same full audit as a laptop run.
+- **Scope (in):** the operator and a run resource it acts on; the gate as a container in the
+  cluster; run state and evidence stored in the cluster; model keys and the publisher
+  credential (token or GitHub App key) from cluster secrets or an enterprise secret store,
+  with the operator minting per-run App tokens; parallel runs; permissions through
+  Kubernetes RBAC; the CLI's operator on/off detection; GitHub approvals (from 004).
+- **Scope (out):** a hosted SaaS or UI; multi-cluster; any weakening of a guarantee.
+- **Depends on:** 004, 005
+- **Governed by:** C-01, C-02, C-03, C-04, C-07, C-08, C-10, C-11
+- **Addresses:** docs/prd.md F2, N1, §9 M4
+- **Notes:** Owner decision 2026-11-14. 007 (observability), 009 (period budgets) and 010
+  (event-proposed runs) gain the most in cluster mode. Decide here how runs get namespaces
+  when users cannot create them. Depends on spec-status shipping a CLI container image for
+  the in-cluster gate (PRD §8). The GitHub App is the recommended publisher credential here.
+
 ## Open Questions
 
 - Q1 — Final project name and repo location (new repo vs. inside the spec-status
@@ -412,6 +480,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - Q6 — Which spec delivers operator observability (C-10): metrics, traces and events for
   gate decisions, attempts, spend and run duration to an operator-run collector? Candidates:
   a new entry after 003, or folded into 004/005. **Resolved 2026-11-13:** entry 007.
+- Q7 — Product name and CLI interface: `pilot` is a prototype name, and the CLI becomes
+  the interface for humans and LLM agents in both modes (C-11). Decide the name and the
+  stable command surface before 011 (raised 2026-11-14).
 
 ## Cross-Cutting Notes
 
@@ -429,7 +500,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   attempt) and enforces the cap with the pilot watchdog and deadline. Accepted by the
   owner 2026-11-13; revisit in 003. Revisited in 003 (no better mechanism found, including
   in Kelos); carried to 005.
+- **Cluster mode (2026-11-14):** in cluster mode, 007 (observability), 009 (period budgets)
+  and 010 (event proposals) run in the operator (011); in laptop mode they run in the CLI,
+  where they apply at all. Both modes keep C-11's guarantees.
 
 ---
 
-**Version**: 1.5.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 1.6.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-14
