@@ -17,6 +17,17 @@ a scratch workspace, emit one result frame on stdout.
 The "later" rows are starting points from each tool's documentation. Verify the exact
 flags against the pinned version before adding a harness.
 
+Claude Code and Codex are planned for a future release (roadmap item 008, "More harnesses").
+Until then, OpenCode is the only supported harness. Open design points for 008:
+- **Keys in files, not environment variables.** Both CLIs usually read their API key from an
+  environment variable. The pilot keeps keys in files, mounted from a per-attempt Secret
+  (with OpenCode, `{env:...}` references did not work in the worker), so each harness needs
+  a file-based way to get its key.
+- **An import command per harness**, like `pilot/pilot import-opencode`, to reuse a
+  working host setup without exposing the key.
+- **Spend accounting** from each harness's own usage events, mapped onto the same watchdog
+  and AU06 check.
+
 Rules that apply to every harness (constitution IV, PRD S2/S6):
 
 - The image is thin, non-root, without sudo, and pinned by digest; the binary is verified
