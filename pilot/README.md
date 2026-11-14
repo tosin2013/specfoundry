@@ -17,7 +17,7 @@ verified.
 - **Operators:** follow the [operator guide](../docs/operator-guide.md) ([troubleshooting](../docs/troubleshooting.md))
 - Spec, plan and contracts: [`specs/002-m1-gated-pilot/`](../specs/002-m1-gated-pilot/)
 - Step-by-step validation: [quickstart.md](../specs/002-m1-gated-pilot/quickstart.md)
-- Harness and provider configuration: [docs/harnesses.md](../docs/harnesses.md)
+- Model providers: [docs/providers.md](../docs/providers.md) · other harnesses: [docs/harnesses.md](../docs/harnesses.md)
 
 ## Prerequisites
 
@@ -36,6 +36,7 @@ verified.
 ## Commands
 
 ```sh
+pilot/pilot import-opencode --fixture-repo <owner>/<name>-pilot-fixture  # reuse host OpenCode config; writes pilot.env
 pilot/pilot publisher-token # hidden prompt -> publisher.env (0600), then verify scope + expiry
 pilot/pilot up              # kind + Calico (hash-checked), images by digest, proxies, publisher namespace
 pilot/pilot up --local-build  # development: build pilot/images/ locally instead of pulling

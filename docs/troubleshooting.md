@@ -41,7 +41,8 @@ instead.
 - **Cause:** OpenCode resolves `"apiKey": "{file:~/.config/opencode/<provider>_api_key}"`
   inside the worker. If the key file is missing, empty or wrongly named, the provider rejects
   the request.
-- **Fix:**
+- **Fix:** if OpenCode works on your machine, run `pilot/pilot import-opencode --force` to copy
+  its setup again. Otherwise:
   1. Put the key, on one line, into `~/.config/specfoundry/opencode/<provider>_api_key`.
   2. Make sure `<provider>` matches the name in the `{file:...}` reference.
   3. Set modes: `chmod 700 ~/.config/specfoundry/opencode` and `chmod 600` on each file inside.
