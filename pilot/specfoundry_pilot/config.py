@@ -82,9 +82,22 @@ def config_dir() -> Path:
     return Path(os.environ.get("SPECFOUNDRY_CONFIG", str(Path.home() / ".config" / "specfoundry")))
 
 
+GUIDE = "docs/operator-guide.md"
+MISSING_HINTS = {
+    "pilot.env": f"create it first: {GUIDE}, section 5 (Configure your model provider)",
+    "publisher.env": "store the token first: pilot/pilot publisher-token",
+    "opencode": f"create it first: {GUIDE}, section 5 (Configure your model provider)",
+}
+
+
+def missing_hint(path: Path) -> str:
+    hint = MISSING_HINTS.get(path.name)
+    return f"\n  {hint}" if hint else ""
+
+
 def check_mode(path: Path) -> None:
     if not path.exists():
-        raise ConfigError(f"missing config file: {path}")
+        raise ConfigError(f"missing config file: {path}{missing_hint(path)}")
     mode = stat.S_IMODE(path.stat().st_mode)
     if mode & 0o077:
         raise ConfigError(f"{path} must be mode 0600 (is {oct(mode)})")
@@ -122,7 +135,7 @@ def model_files(d: Path) -> list[Path]:
 
 def check_model_dir(d: Path) -> None:
     if not d.is_dir():
-        raise ConfigError(f"missing worker OpenCode config dir: {d}")
+        raise ConfigError(f"missing worker OpenCode config dir: {d}{missing_hint(d)}")
     if stat.S_IMODE(d.stat().st_mode) & 0o077:
         raise ConfigError(f"{d} must be mode 0700")
     files = model_files(d)

@@ -56,6 +56,18 @@ class TestLoad(unittest.TestCase):
         self.assertEqual(cfg.model_hosts, ["api.example.com"])
         self.assertEqual(cfg["PILOT_SPEND_CAP_USD"], "1.00")
 
+    def test_missing_files_say_what_to_do(self):
+        # 006 validation finding: a fresh machine ran publisher-token before pilot.env existed.
+        (self.d / "pilot.env").unlink()
+        with self.assertRaises(ConfigError) as e:
+            config.load(require_secrets=False, guard=False)
+        self.assertIn("section 5", str(e.exception))
+        self.write("pilot.env", PILOT_ENV)
+        (self.d / "publisher.env").unlink()
+        with self.assertRaises(ConfigError) as e:
+            config.load(guard=False)
+        self.assertIn("pilot/pilot publisher-token", str(e.exception))
+
     def test_model_files_ignore_backups(self):
         cfg = config.load(guard=False)
         self.assertEqual([p.name for p in cfg.model_files], ["opencode.json", "p_api_key"])
