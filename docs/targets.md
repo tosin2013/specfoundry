@@ -3,9 +3,9 @@
 The fixture shows the pilot's guarantees on two built-in items. A **target** is one of your own
 repositories. You prepare its items with Spec Kit; the pilot then runs only items that are
 prepared, under the same guarantees. This page covers configuring targets, checking whether an item
-is ready, and running it (roadmap item 014). Until 014's next step adds the other toolchains and
-dependency downloads, use `PILOT_TOOLCHAIN=python`: the built-in Python 3.11 with pytest, for a
-project whose tests need no packages installed.
+is ready, and running it (roadmap item 014). Today you can use `PILOT_TOOLCHAIN=python3.13`, with
+packages installed from PyPI, or the built-in `python` (Python 3.11 with pytest) for a project
+whose tests need no packages. The other toolchains follow.
 
 ## 1. Prepare the repository
 
@@ -37,14 +37,34 @@ For each item you want the pilot to build:
 
 ## 2. Configure the target
 
-Shared settings (model, approvers, publisher mode) stay in `pilot.env`. Each target gets its
-own file:
+Target settings live on your machine, never in the target repository. They go in a `targets`
+folder next to `pilot.env`:
+
+```text
+~/.config/specfoundry/              # or $SPECFOUNDRY_CONFIG, if you set it
+├── pilot.env                       # shared: model, approvers, publisher mode
+├── publisher.env                   # token mode only: the fixture's token
+└── targets/                        # you create this folder; the pilot doesn't
+    ├── greeting.env                # the profile for `--target greeting`
+    └── greeting.publisher.env      # optional: this target's own token (section 4)
+```
+
+- **The file name is the target's name.** `--target greeting` reads `targets/greeting.env`.
+  A name is lower-case letters, digits and `-`.
+- **Create the folder and the file yourself, readable only by you.** For example, on a machine
+  where your home is `/home/ubuntu`, the full path is
+  `/home/ubuntu/.config/specfoundry/targets/greeting.env`:
 
 ```sh
 install -d -m 0700 ~/.config/specfoundry/targets
+install -m 600 /dev/null ~/.config/specfoundry/targets/greeting.env
 $EDITOR ~/.config/specfoundry/targets/greeting.env
-chmod 600 ~/.config/specfoundry/targets/greeting.env
 ```
+
+- **If the file is missing**, the pilot stops with `TARGET_UNKNOWN: no target "greeting":
+  create …/targets/greeting.env`, and prints the full path it looked for.
+
+The profile's contents:
 
 ```sh
 PILOT_TARGET_REPO=you/greeting-service

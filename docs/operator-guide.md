@@ -613,7 +613,7 @@ This guide describes the pilot today. Planned
 | Item | Effect on this guide |
 |---|---|
 | **004:** GitHub loop | Available as an option: issues per roadmap item, approvals on GitHub, and a GitHub App as the publisher. See [the GitHub loop](github-loop.md) and [GitHub App](github-app.md). This walkthrough is unchanged with it off |
-| **014:** Your own repositories | Run one prepared item of your own repository: `pilot/pilot run --target <name> --item NNN`, with readiness checks, hidden tests from a private companion repository, and the same approvals and audit. Today: Python projects whose tests need no extra packages; other toolchains, dependency downloads and your own toolchain image are next. See [targets](targets.md). The fixture walkthrough is unchanged |
+| **014:** Your own repositories | Run one prepared item of your own repository: `pilot/pilot run --target <name> --item NNN`, with readiness checks, hidden tests from a private companion repository, and the same approvals and audit. Today: Python projects (Python 3.13 with packages from PyPI, or the built-in Python without packages); other toolchains and your own toolchain image are next. Each target is a file you create, `~/.config/specfoundry/targets/<name>.env`; see [targets](targets.md). The fixture walkthrough is unchanged |
 | **005:** OpenShift | An enterprise install path (restricted SCC, possibly images on Quay), and per-run model keys |
 | **007:** Operator observability | Metrics, traces and events from each run to a collector you run |
 | **008:** More harnesses | Claude Code and Codex workers alongside OpenCode |
