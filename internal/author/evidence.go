@@ -27,6 +27,7 @@ type JobRecord struct {
 	Error       string         `json:"error,omitempty"`
 	DraftFiles  int            `json:"draft_files"`
 	Checks      []AuthorCheck  `json:"checks,omitempty"`
+	Model       string         `json:"model,omitempty"` // 041: the model the author Job used
 }
 
 // AuthorCheck is one isolation check of the author's namespace (A01-A05, 024 R6).
@@ -70,6 +71,8 @@ type Draft struct {
 	Trigger       string      `json:"trigger,omitempty"` // manual | auto
 	Jobs          []JobRecord `json:"jobs,omitempty"`
 	WatchDecision string      `json:"watch_decision,omitempty"`
+	// 041: the model that wrote the draft (the last author Job's); "" for a draft written by hand.
+	Model string `json:"model,omitempty"`
 
 	// lastOutput is the drafted tests' output from the last check (never stored; 018 FR, 024 R5).
 	lastOutput string

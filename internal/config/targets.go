@@ -63,6 +63,7 @@ type Target struct {
 	SliceRuns       string
 	AuthorIntervalS int    // seconds between the watcher's polls (024, default 120)
 	AuthorAttempts  int    // author Jobs per automatic draft (024, default 2, at most 3)
+	AuthorModel     string // 041: the test author's model ("" = the global setting, then the worker's)
 	ProposeLabel    string // the label that proposes an item to step mode (021; default DefaultProposeLabel)
 	// ProposeLabelDefault is true when the profile sets no label, so step mode uses the default
 	// (and says so if issues still carry OldProposeLabel, 027 FR-007).
@@ -252,7 +253,8 @@ func parseTarget(name string, v map[string]string, c *Config) (Target, error) {
 		WorkerCPU: strings.TrimSpace(v["PILOT_WORKER_CPU"]), WorkerMemory: strings.TrimSpace(v["PILOT_WORKER_MEMORY"]),
 		AuthorAuto: strings.TrimSpace(v["PILOT_AUTHOR_AUTO"]), AuthorIntervalS: 120, AuthorAttempts: 2,
 		SliceRuns: strings.TrimSpace(v["PILOT_SLICE_RUNS"]), FreeModels: strings.TrimSpace(v["PILOT_ALLOW_FREE_MODELS"]),
-		ProposeLabel: strings.TrimSpace(v["PILOT_PROPOSE_LABEL"]), StepIntervalS: 120}
+		ProposeLabel: strings.TrimSpace(v["PILOT_PROPOSE_LABEL"]), StepIntervalS: 120,
+		AuthorModel: strings.TrimSpace(v["PILOT_AUTHOR_MODEL"])}
 	kind, key, why := scmSyntax(v)
 	if key != "" {
 		return Target{}, invalid(key, why)

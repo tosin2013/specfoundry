@@ -114,6 +114,7 @@ func runDoctor(cmd *cobra.Command, _ []string) error {
 			r.Add("cluster", "model key", doctor.Warn, fmt.Sprintf("couldn't confirm the key: the provider answered %d to a one-token test request", probe.Status))
 		}
 	}
+	doctorAuthorModel(ctx, &r, cfg, t)
 	if msg := cluster.OldMessage(cluster.OldPresent()); msg != "" {
 		r.Add("cluster", "old cluster", doctor.Warn, msg+" (027)")
 	}

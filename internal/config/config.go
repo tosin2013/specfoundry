@@ -436,3 +436,31 @@ func Load(root string, requireSecrets, guard bool) (*Config, error) {
 	}
 	return c, nil
 }
+
+// AuthorModel is the model the test author's Jobs use (041 US1): the target profile's
+// FORGE_AUTHOR_MODEL, then forge.env's, then the worker's model (FORGE_MODEL).
+func (c *Config) AuthorModel(t Target) string {
+	if t.AuthorModel != "" {
+		return t.AuthorModel
+	}
+	if m := strings.TrimSpace(c.Get("PILOT_AUTHOR_MODEL")); m != "" {
+		return m
+	}
+	return c.Get("PILOT_MODEL")
+}
+
+// AuthorModelProblem says why the author's model can't be used ("" when it can). Version 1
+// shares the worker's provider, key and model egress host (041 research R5), so the provider
+// part (before "/") must match the worker's.
+func (c *Config) AuthorModelProblem(t Target) string {
+	am, wm := c.AuthorModel(t), c.Get("PILOT_MODEL")
+	if am == wm {
+		return ""
+	}
+	ap, _, _ := strings.Cut(am, "/")
+	wp, _, _ := strings.Cut(wm, "/")
+	if ap != wp {
+		return fmt.Sprintf("FORGE_AUTHOR_MODEL %s uses provider %s, but the worker's model %s uses %s: the test author shares the worker's provider, key and model host; pick a %s model", am, ap, wm, wp, wp)
+	}
+	return ""
+}

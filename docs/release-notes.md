@@ -1,5 +1,14 @@
 # Release notes
 
+## A separate model for the test author (041, first part)
+
+- `FORGE_AUTHOR_MODEL` (target profile, or `forge.env` for every target) sets the model that
+  drafts hidden tests; workers keep `FORGE_MODEL`. Any model of the worker's provider, free or
+  paid: for example a free worker and a paid author. Another provider is refused for now.
+- `doctor` shows an `author model` row and checks the provider accepts the key for it.
+- Each author Job and draft records its model, and the companion pull request names it
+  ([targets: drafting hidden tests automatically](targets.md#drafting-hidden-tests-automatically)).
+
 ## Doctor reviews the target's CI (036, first part)
 
 - `./chalkeus forge doctor --target <t>` now reads the target's CI whenever it has

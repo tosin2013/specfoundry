@@ -498,7 +498,7 @@ stderr. Pass `-v` for less, or set `FORGE_VERBOSE=0` to turn it off. The agent's
 tests.
 
 - **The author runs sandboxed:** a Job in its own namespace on your cluster, using the same
-  OpenCode and model as the workers. It can reach only the model, holds no GitHub credential,
+  OpenCode as the workers, and their model unless you choose another (below). It can reach only the model, holds no GitHub credential,
   and shares nothing with build workers. Checks A01-A05, in the draft's evidence, prove it for
   every Job.
 - **The pilot, not the Job, checks the draft** (your tests pass, the drafted tests fail on
@@ -511,7 +511,17 @@ tests.
   same spec, unless you start the watcher with `--redraft`
   (`./chalkeus forge author watch --target <name> --redraft`): it drafts each waiting item or
   slice once more, for example after a forge fix.
-- `./chalkeus forge doctor --target <name>` shows whether auto-draft is on.
+- **A stronger model for the test author (041):** a hidden test is drafted once and grades
+  every attempt, so a mistake there costs the most. Set `FORGE_AUTHOR_MODEL` in the target's
+  profile (or in `forge.env` for every target) to draft with another model of the worker's
+  provider, free or paid; the workers keep `FORGE_MODEL`. For example, workers on
+  `opencode-go/beam-free` and the author on `opencode-go/deepseek-v4-pro`. A paid model needs no
+  opt-in; `FORGE_ALLOW_FREE_MODELS=on` is only for free ones. A model from another provider is
+  refused for now (it would need its own key and model host). The draft's evidence and the
+  companion pull request name the model that wrote the tests.
+- `./chalkeus forge doctor --target <name>` shows whether auto-draft is on, and the author's
+  model: `author model` is information while drafts use the worker's model, and passes once
+  the provider accepts its key for the author's model.
 - The session that drives runs (your coding agent with the forge skill) never starts the
   watcher or reads its drafts.
 

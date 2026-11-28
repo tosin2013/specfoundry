@@ -54,7 +54,8 @@ func AuthorNS(target, item string) string { return "pilot-a-" + target + "-" + i
 // only through its framed output (024 FR-005).
 func RunJob(ctx context.Context, je JobEnv, d *Draft, attempt int, prompt string) JobRecord {
 	ns := AuthorNS(d.Target, d.Item)
-	rec := JobRecord{Attempt: attempt, Namespace: ns}
+	rec := JobRecord{Attempt: attempt, Namespace: ns, Model: je.Model}
+	d.Model = je.Model // 041: recorded per draft and named in the PR body
 	fail := func(reason string, err error) JobRecord {
 		rec.Error = reason
 		if err != nil {

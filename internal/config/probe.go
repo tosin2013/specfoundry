@@ -24,7 +24,11 @@ type ModelProbe struct {
 // and model, from this machine, to <baseURL>/chat/completions (OpenAI-compatible providers and
 // gateways). A listing endpoint isn't enough: a gateway may list models for a key it then
 // refuses to serve. It reads the key from the worker's key file and never returns or prints it.
-func (c *Config) ProbeModel(ctx context.Context) (ModelProbe, error) {
+func (c *Config) ProbeModel(ctx context.Context) (ModelProbe, error) { return c.ProbeModelAs(ctx, "") }
+
+// ProbeModelAs is ProbeModel with another model of the same provider (041: the test author's);
+// "" means the worker's configured model.
+func (c *Config) ProbeModelAs(ctx context.Context, as string) (ModelProbe, error) {
 	raw, err := os.ReadFile(filepath.Join(c.ModelDir, "opencode.json"))
 	if err != nil {
 		return ModelProbe{}, fmt.Errorf("no worker model config: run `./chalkeus forge import-opencode`")
@@ -35,6 +39,13 @@ func (c *Config) ProbeModel(ctx context.Context) (ModelProbe, error) {
 	}
 	model, _ := doc["model"].(string)
 	prov, modelID, _ := strings.Cut(model, "/")
+	if as != "" {
+		ap, aid, _ := strings.Cut(as, "/")
+		if ap != prov {
+			return ModelProbe{Provider: ap}, fmt.Errorf("model %s is not on the worker's provider %s", as, prov)
+		}
+		modelID = aid
+	}
 	provs, _ := doc["providers"].(map[string]any)
 	p, _ := provs[prov].(map[string]any)
 	settings, _ := p["settings"].(map[string]any)

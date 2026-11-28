@@ -1,7 +1,15 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.45.1 → 1.45.2 (this revision)
+Version change: 1.45.2 → 1.45.3 (this revision)
+Bump rationale: PATCH — status transition: 041 in-progress (US1, the test-author model, built).
+Changes this revision (owner go-ahead 2026-11-28, Tosin Akinosho):
+  - 041 → in-progress: US1 adds FORGE_AUTHOR_MODEL (any model of the worker's provider, free or
+    paid; another provider refused for now, owner decision 2026-11-28).
+Specs affected: 041
+Open questions added/resolved: none
+
+Prior: Version change: 1.45.1 → 1.45.2
 Bump rationale: PATCH — status transition: 041 specced.
 Changes this revision (owner go-ahead 2026-11-28, Tosin Akinosho):
   - 041 → specced, spec dir specs/041-proven-hidden-tests/ (five stories: test-author model,
@@ -2758,7 +2766,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   from a dead one: `kubectl logs` on the author job printed only the result frame. 007 later
   exports the same counters; the log audit decides the always/`-vv`/never split before code.
 
-### 041 — Proven hidden tests: a reference check, a per-test vote and a test plan  [status: specced]
+### 041 — Proven hidden tests: a reference check, a per-test vote and a test plan  [status: in-progress]
 
 - **Description:** Check the hidden tests before they grade anything: prove they can pass on a
   correct change and fail on today's code, have an independent agent judge each test against
@@ -3017,4 +3025,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.45.2 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-28
+**Version**: 1.45.3 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-28
